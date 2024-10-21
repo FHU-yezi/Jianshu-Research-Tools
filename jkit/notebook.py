@@ -1,8 +1,7 @@
 from collections.abc import AsyncGenerator
-from typing import TYPE_CHECKING, Any, Literal, Optional
+from typing import TYPE_CHECKING, Any, Literal, Optional, TypeVar
 
 from httpx import HTTPStatusError
-from typing_extensions import Self
 
 from jkit._base import (
     DATA_OBJECT_CONFIG,
@@ -33,6 +32,8 @@ from jkit.msgspec_constraints import (
 if TYPE_CHECKING:
     from jkit.article import Article
     from jkit.user import User
+
+T = TypeVar("T", bound="Notebook")
 
 
 class AuthorInfoField(DataObject, **DATA_OBJECT_CONFIG):
@@ -102,7 +103,7 @@ class Notebook(ResourceObject, CheckableObject, IdAndUrlObject):
         self._id = id
 
     @classmethod
-    def from_id(cls, id: int, /) -> Self:  # noqa: A002
+    def from_id(cls: type[T], id: int, /) -> T:  # noqa: A002
         return cls(id=id)
 
     @property

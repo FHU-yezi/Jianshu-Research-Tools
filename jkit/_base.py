@@ -1,16 +1,20 @@
 from abc import ABCMeta, abstractmethod
-from typing import Callable, ClassVar, Optional
+from typing import Callable, ClassVar, Optional, TypeVar
 
 from msgspec import Struct, convert, to_builtins
 from msgspec import ValidationError as MsgspecValidationError
-from typing_extensions import Self
 
 from jkit.config import CONFIG
 from jkit.exceptions import ValidationError
 
+T = TypeVar("T", bound="DataObject")
+P1 = TypeVar("P1", bound="CheckableObject")
+P2 = TypeVar("P2", bound="SlugAndUrlObject")
+P3 = TypeVar("P3", bound="IdAndUrlObject")
+
 
 class DataObject(Struct):
-    def _validate(self) -> Self:
+    def _validate(self: T) -> T:
         if not CONFIG.data_validation.enabled:
             return self
 
@@ -62,7 +66,7 @@ class CheckableObject(metaclass=ABCMeta):
         if not self._checked:
             await self.check()
 
-    def _as_checked(self) -> Self:
+    def _as_checked(self: P1) -> P1:
         if CONFIG.resource_check.force_check_safe_data:
             self._checked = True
 
@@ -82,11 +86,11 @@ class SlugAndUrlObject:
         self._slug = ""
 
     @classmethod
-    def from_slug(cls, slug: str, /) -> Self:
+    def from_slug(cls: type[P2], slug: str, /) -> P2:
         return cls(slug=slug)
 
     @classmethod
-    def from_url(cls, url: str, /) -> Self:
+    def from_url(cls: type[P2], url: str, /) -> P2:
         return cls(url=url)
 
     @property
@@ -146,12 +150,12 @@ class SlugAndUrlObject:
 class IdAndUrlObject(metaclass=ABCMeta):
     @classmethod
     @abstractmethod
-    def from_id(cls, id: int, /) -> Self:  # noqa: A002
+    def from_id(cls: type[P3], id: int, /) -> P3:  # noqa: A002
         raise NotImplementedError
 
     @classmethod
     @abstractmethod
-    def from_url(cls, url: str, /) -> Self:
+    def from_url(cls: type[P3], url: str, /) -> "P3":
         raise NotImplementedError
 
     @property

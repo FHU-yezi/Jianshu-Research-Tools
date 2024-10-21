@@ -1,15 +1,16 @@
-from typing import Literal, Optional
+from typing import Literal, Optional, TypeVar
 
 from httpx import AsyncClient
 from httpx._types import ProxiesTypes, TimeoutTypes
 from msgspec import Struct, convert, field, to_builtins
-from typing_extensions import Self
 
 from jkit.msgspec_constraints import NonEmptyStr
 
+T = TypeVar("T", bound="ConfigObject")
+
 
 class ConfigObject(Struct):
-    def _validate(self) -> Self:
+    def _validate(self: T) -> T:
         return convert(to_builtins(self), type=self.__class__)
 
 
