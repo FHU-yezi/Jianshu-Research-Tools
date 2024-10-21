@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 T = TypeVar("T", bound="Notebook")
 
 
-class AuthorInfoField(DataObject, frozen=True, eq=True, kw_only=True):
+class AuthorInfoField(DataObject, frozen=True):
     slug: UserSlug
     name: UserName
     avatar_url: UserUploadedUrl
@@ -46,7 +46,7 @@ class AuthorInfoField(DataObject, frozen=True, eq=True, kw_only=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class NotebookInfo(DataObject, frozen=True, eq=True, kw_only=True):
+class NotebookInfo(DataObject, frozen=True):
     id: NotebookId
     name: NonEmptyStr
     description_updated_at: NormalizedDatetime
@@ -57,7 +57,7 @@ class NotebookInfo(DataObject, frozen=True, eq=True, kw_only=True):
     total_wordage: NonNegativeInt
 
 
-class ArticleAuthorInfoField(DataObject, frozen=True, eq=True, kw_only=True):
+class ArticleAuthorInfoField(DataObject, frozen=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -69,7 +69,7 @@ class ArticleAuthorInfoField(DataObject, frozen=True, eq=True, kw_only=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class NotebookArticleInfo(DataObject, frozen=True, eq=True, kw_only=True):
+class NotebookArticleInfo(DataObject, frozen=True):
     id: PositiveInt
     slug: ArticleSlug
     title: NonEmptyStr

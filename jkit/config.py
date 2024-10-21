@@ -14,7 +14,7 @@ class ConfigObject(Struct, eq=False, kw_only=True, gc=False):
         return convert(to_builtins(self), type=self.__class__)
 
 
-class _NetworkConfig(ConfigObject, eq=False, kw_only=True, gc=False):
+class _NetworkConfig(ConfigObject):
     """网络配置"""
 
     # 使用的传输协议，HTTP/2 有助于提升性能
@@ -41,14 +41,14 @@ class _NetworkConfig(ConfigObject, eq=False, kw_only=True, gc=False):
         jkit._network_request.HTTP_CLIENT = self._get_http_client()
 
 
-class _EndpointsConfig(ConfigObject, eq=False, kw_only=True, gc=False):
+class _EndpointsConfig(ConfigObject):
     """API 端点配置"""
 
     jianshu: NonEmptyStr = "https://www.jianshu.com"
     jpep: NonEmptyStr = "https://20221023.jianshubei.com/api"
 
 
-class _ResourceCheckConfig(ConfigObject, eq=False, kw_only=True, gc=False):
+class _ResourceCheckConfig(ConfigObject):
     """资源检查配置"""
 
     # 从资源对象获取数据时自动进行资源检查
@@ -63,7 +63,7 @@ class _ResourceCheckConfig(ConfigObject, eq=False, kw_only=True, gc=False):
     force_check_safe_data: bool = False
 
 
-class _DataValidationConfig(ConfigObject, eq=False, kw_only=True, gc=False):
+class _DataValidationConfig(ConfigObject):
     """数据校验配置"""
 
     # 是否启用数据校验
@@ -71,7 +71,7 @@ class _DataValidationConfig(ConfigObject, eq=False, kw_only=True, gc=False):
     enabled: bool = True
 
 
-class _Config(ConfigObject, eq=False, kw_only=True, gc=False):
+class _Config(ConfigObject):
     network: _NetworkConfig = field(default_factory=_NetworkConfig)
     endpoints: _EndpointsConfig = field(default_factory=_EndpointsConfig)
     resource_check: _ResourceCheckConfig = field(default_factory=_ResourceCheckConfig)

@@ -27,7 +27,7 @@ from jkit.msgspec_constraints import (
 )
 
 
-class AssetsTransactionRecord(DataObject, frozen=True, eq=True, kw_only=True):
+class AssetsTransactionRecord(DataObject, frozen=True):
     id: PositiveInt
     time: NormalizedDatetime
     type_id: PositiveInt
@@ -36,7 +36,7 @@ class AssetsTransactionRecord(DataObject, frozen=True, eq=True, kw_only=True):
     amount_precise: Decimal
 
 
-class FPRewardsRecord(DataObject, frozen=True, eq=True, kw_only=True):
+class FPRewardsRecord(DataObject, frozen=True):
     time: NormalizedDatetime
     own_amount: Decimal
     level1_referral_amount: Decimal
@@ -44,12 +44,12 @@ class FPRewardsRecord(DataObject, frozen=True, eq=True, kw_only=True):
     total_amount: Decimal
 
 
-class BenefitCardsInfo(DataObject, frozen=True, eq=True, kw_only=True):
+class BenefitCardsInfo(DataObject, frozen=True):
     total_amount: NonNegativeFloat
     estimated_benefits_percent: Percentage
 
 
-class UnusedBenfitCardRecord(DataObject, frozen=True, eq=True, kw_only=True):
+class UnusedBenfitCardRecord(DataObject, frozen=True):
     amount: NonNegativeFloat
     start_time: NormalizedDatetime
     end_time: NormalizedDatetime
@@ -59,7 +59,7 @@ class UnusedBenfitCardRecord(DataObject, frozen=True, eq=True, kw_only=True):
         return self.start_time <= datetime.now() <= self.end_time
 
 
-class ActiveBenfitCardRecord(DataObject, frozen=True, eq=True, kw_only=True):
+class ActiveBenfitCardRecord(DataObject, frozen=True):
     amount: NonNegativeFloat
     start_time: NormalizedDatetime
     end_time: NormalizedDatetime
@@ -70,7 +70,7 @@ class ActiveBenfitCardRecord(DataObject, frozen=True, eq=True, kw_only=True):
         return self.start_time <= datetime.now() <= self.end_time
 
 
-class ExpiredBenfitCardRecord(DataObject, frozen=True, eq=True, kw_only=True):
+class ExpiredBenfitCardRecord(DataObject, frozen=True):
     amount: NonNegativeFloat
     start_time: NormalizedDatetime
     end_time: NormalizedDatetime

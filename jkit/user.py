@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 ASSETS_AMOUNT_REGEX = re_compile(r"收获喜欢[\s\S]*?<p>(.*)</p>[\s\S]*?总资产")
 
 
-class UserBadge(DataObject, frozen=True, eq=True, kw_only=True):
+class UserBadge(DataObject, frozen=True):
     name: NonEmptyStr
     introduction_url: str
     image_url: NonEmptyStr
@@ -65,12 +65,12 @@ class GenderEnum(Enum):
     FEMALE = "女"
 
 
-class MembershipInfoField(DataObject, frozen=True, eq=True, kw_only=True):
+class MembershipInfoField(DataObject, frozen=True):
     type: MembershipEnum
     expired_at: Optional[NormalizedDatetime]
 
 
-class UserInfo(DataObject, frozen=True, eq=True, kw_only=True):
+class UserInfo(DataObject, frozen=True):
     id: PositiveInt
     name: UserName
     gender: GenderEnum
@@ -89,7 +89,7 @@ class UserInfo(DataObject, frozen=True, eq=True, kw_only=True):
     fp_amount: NonNegativeFloat
 
 
-class UserCollectionInfo(DataObject, frozen=True, eq=True, kw_only=True):
+class UserCollectionInfo(DataObject, frozen=True):
     id: PositiveInt
     slug: CollectionSlug
     name: NonEmptyStr
@@ -101,7 +101,7 @@ class UserCollectionInfo(DataObject, frozen=True, eq=True, kw_only=True):
         return Collection.from_slug(self.slug)._as_checked()
 
 
-class UserNotebookInfo(DataObject, frozen=True, eq=True, kw_only=True):
+class UserNotebookInfo(DataObject, frozen=True):
     id: PositiveInt
     name: NonEmptyStr
     is_serial: bool
@@ -113,7 +113,7 @@ class UserNotebookInfo(DataObject, frozen=True, eq=True, kw_only=True):
         return Notebook.from_id(self.id)
 
 
-class ArticleAuthorInfoField(DataObject, frozen=True, eq=True, kw_only=True):
+class ArticleAuthorInfoField(DataObject, frozen=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -125,7 +125,7 @@ class ArticleAuthorInfoField(DataObject, frozen=True, eq=True, kw_only=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class UserArticleInfo(DataObject, frozen=True, eq=True, kw_only=True):
+class UserArticleInfo(DataObject, frozen=True):
     id: PositiveInt
     slug: ArticleSlug
     title: NonEmptyStr

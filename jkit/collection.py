@@ -38,7 +38,7 @@ if TYPE_CHECKING:
     from jkit.user import User
 
 
-class OwnerInfoField(DataObject, frozen=True, eq=True, kw_only=True):
+class OwnerInfoField(DataObject, frozen=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -49,7 +49,7 @@ class OwnerInfoField(DataObject, frozen=True, eq=True, kw_only=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class CollectionInfo(DataObject, frozen=True, eq=True, kw_only=True):
+class CollectionInfo(DataObject, frozen=True):
     id: PositiveInt
     slug: CollectionSlug
     name: NonEmptyStr
@@ -63,7 +63,7 @@ class CollectionInfo(DataObject, frozen=True, eq=True, kw_only=True):
     subscribers_count: NonNegativeInt
 
 
-class ArticleAuthorInfoField(DataObject, frozen=True, eq=True, kw_only=True):
+class ArticleAuthorInfoField(DataObject, frozen=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -75,7 +75,7 @@ class ArticleAuthorInfoField(DataObject, frozen=True, eq=True, kw_only=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class CollectionArticleInfo(DataObject, frozen=True, eq=True, kw_only=True):
+class CollectionArticleInfo(DataObject, frozen=True):
     id: PositiveInt
     slug: ArticleSlug
     title: NonEmptyStr

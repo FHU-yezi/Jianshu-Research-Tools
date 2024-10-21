@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from jkit.user import User
 
 
-class UserInfoField(DataObject, frozen=True, eq=True, kw_only=True):
+class UserInfoField(DataObject, frozen=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -30,7 +30,7 @@ class UserInfoField(DataObject, frozen=True, eq=True, kw_only=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class LotteryWinRecord(DataObject, frozen=True, eq=True, kw_only=True):
+class LotteryWinRecord(DataObject, frozen=True):
     id: PositiveInt
     time: NormalizedDatetime
     award_name: NonEmptyStr

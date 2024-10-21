@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from jkit.user import User
 
 
-class RecordField(DataObject, frozen=True, eq=True, kw_only=True):
+class RecordField(DataObject, frozen=True):
     ranking: PositiveInt
     name: UserName
     slug: UserSlug
@@ -35,7 +35,7 @@ class RecordField(DataObject, frozen=True, eq=True, kw_only=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class UserEarningRankingData(DataObject, frozen=True, eq=True, kw_only=True):
+class UserEarningRankingData(DataObject, frozen=True):
     total_fp_amount_sum: PositiveFloat
     fp_by_creating_amount_sum: PositiveFloat
     fp_by_voting_amount_sum: PositiveFloat

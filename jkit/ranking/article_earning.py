@@ -20,12 +20,12 @@ if TYPE_CHECKING:
     from jkit.article import Article
 
 
-class AuthorInfoField(DataObject, frozen=True, eq=True, kw_only=True):
+class AuthorInfoField(DataObject, frozen=True):
     name: Optional[UserName]
     avatar_url: Optional[UserUploadedUrl]
 
 
-class RecordField(DataObject, frozen=True, eq=True, kw_only=True):
+class RecordField(DataObject, frozen=True):
     ranking: PositiveInt
     title: Optional[NonEmptyStr]
     slug: Optional[ArticleSlug]
@@ -47,7 +47,7 @@ class RecordField(DataObject, frozen=True, eq=True, kw_only=True):
         return Article.from_slug(self.slug)._as_checked()
 
 
-class ArticleEarningRankingData(DataObject, frozen=True, eq=True, kw_only=True):
+class ArticleEarningRankingData(DataObject, frozen=True):
     total_fp_amount_sum: PositiveFloat
     fp_to_author_amount_sum: PositiveFloat
     fp_to_voter_amount_sum: PositiveFloat

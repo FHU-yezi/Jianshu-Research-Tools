@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from jkit.user import User
 
 
-class UserInfoField(DataObject, frozen=True, eq=True, kw_only=True):
+class UserInfoField(DataObject, frozen=True):
     id: Optional[PositiveInt]
     slug: Optional[UserSlug]
     name: Optional[UserName]
@@ -33,7 +33,7 @@ class UserInfoField(DataObject, frozen=True, eq=True, kw_only=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class AssetsRankingRecord(DataObject, frozen=True, eq=True, kw_only=True):
+class AssetsRankingRecord(DataObject, frozen=True):
     ranking: PositiveInt
     assets_amount: NonNegativeFloat
     user_info: UserInfoField

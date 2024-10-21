@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from jkit.user import User
 
 
-class UserInfoField(DataObject, frozen=True, eq=True, kw_only=True):
+class UserInfoField(DataObject, frozen=True):
     slug: UserSlug
     name: UserName
     avatar_url: UserUploadedUrl
@@ -21,7 +21,7 @@ class UserInfoField(DataObject, frozen=True, eq=True, kw_only=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class DailyUpdateRankingRecord(DataObject, frozen=True, eq=True, kw_only=True):
+class DailyUpdateRankingRecord(DataObject, frozen=True):
     ranking: PositiveInt
     days: PositiveInt
     user_info: UserInfoField

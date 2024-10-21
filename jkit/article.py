@@ -57,7 +57,7 @@ class ArticlePaidStatusEnum(Enum):
     PAID = "付费"
 
 
-class PaidInfoField(DataObject, frozen=True, eq=True, kw_only=True):
+class PaidInfoField(DataObject, frozen=True):
     notebook_paid_status: Optional[NotebookPaidStatusEnum]
     article_paid_status: ArticlePaidStatusEnum
     price: Optional[PositiveFloat]
@@ -65,7 +65,7 @@ class PaidInfoField(DataObject, frozen=True, eq=True, kw_only=True):
     paid_readers_count: Optional[NonNegativeInt]
 
 
-class AuthorInfoField(DataObject, frozen=True, eq=True, kw_only=True):
+class AuthorInfoField(DataObject, frozen=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -82,7 +82,7 @@ class AuthorInfoField(DataObject, frozen=True, eq=True, kw_only=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class ArticleInfo(DataObject, frozen=True, eq=True, kw_only=True):
+class ArticleInfo(DataObject, frozen=True):
     id: PositiveInt
     notebook_id: PositiveInt
     title: NonEmptyStr
@@ -107,7 +107,7 @@ class ArticleInfo(DataObject, frozen=True, eq=True, kw_only=True):
         return BLANK_LINES_REGEX.sub("\n", result)
 
 
-class ArticleAudioInfo(DataObject, frozen=True, eq=True, kw_only=True):
+class ArticleAudioInfo(DataObject, frozen=True):
     id: PositiveInt
     name: NonEmptyStr
     producer: NonEmptyStr
@@ -126,7 +126,7 @@ class ArticleAudioInfo(DataObject, frozen=True, eq=True, kw_only=True):
         return self.file_url_expire_time >= datetime.now()
 
 
-class ArticleIncludedCollectionInfo(DataObject, frozen=True, eq=True, kw_only=True):
+class ArticleIncludedCollectionInfo(DataObject, frozen=True):
     id: PositiveInt
     slug: CollectionSlug
     name: NonEmptyStr
@@ -146,7 +146,7 @@ class ArticleIncludedCollectionInfo(DataObject, frozen=True, eq=True, kw_only=Tr
         return (await self.to_collection_obj().info).name
 
 
-class ArticleBelongToNotebookInfo(DataObject, frozen=True, eq=True, kw_only=True):
+class ArticleBelongToNotebookInfo(DataObject, frozen=True):
     id: PositiveInt
     name: NonEmptyStr
 
@@ -156,7 +156,7 @@ class ArticleBelongToNotebookInfo(DataObject, frozen=True, eq=True, kw_only=True
         return Notebook.from_id(self.id)
 
 
-class CommentPublisherInfoField(DataObject, frozen=True, eq=True, kw_only=True):
+class CommentPublisherInfoField(DataObject, frozen=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -170,7 +170,7 @@ class CommentPublisherInfoField(DataObject, frozen=True, eq=True, kw_only=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class ArticleSubcommentInfo(DataObject, frozen=True, eq=True, kw_only=True):
+class ArticleSubcommentInfo(DataObject, frozen=True):
     id: PositiveInt
     content: str
     images: tuple[UserUploadedUrl, ...]
@@ -178,7 +178,7 @@ class ArticleSubcommentInfo(DataObject, frozen=True, eq=True, kw_only=True):
     publisher_info: CommentPublisherInfoField
 
 
-class ArticleCommentInfo(DataObject, frozen=True, eq=True, kw_only=True):
+class ArticleCommentInfo(DataObject, frozen=True):
     id: PositiveInt
     floor: PositiveInt
     content: str

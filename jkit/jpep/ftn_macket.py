@@ -21,7 +21,7 @@ class PaymentChannels(Enum):
     ANT_CREDIT_PAY = "蚂蚁花呗"
 
 
-class PublisherInfoField(DataObject, frozen=True, eq=True, kw_only=True):
+class PublisherInfoField(DataObject, frozen=True):
     id: PositiveInt
     name: NonEmptyStr
     hashed_name: NonEmptyStr
@@ -29,7 +29,7 @@ class PublisherInfoField(DataObject, frozen=True, eq=True, kw_only=True):
     credit: NonNegativeInt
 
 
-class FTNMacketOrderRecord(DataObject, frozen=True, eq=True, kw_only=True):
+class FTNMacketOrderRecord(DataObject, frozen=True):
     id: PositiveInt
     price: PositiveFloat
 

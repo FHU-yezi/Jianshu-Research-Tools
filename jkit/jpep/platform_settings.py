@@ -4,7 +4,7 @@ from jkit.config import CONFIG
 from jkit.msgspec_constraints import NonNegativeFloat
 
 
-class PlatformSettingsData(DataObject, frozen=True, eq=True, kw_only=True):
+class PlatformSettingsData(DataObject, frozen=True):
     opening: bool
 
     ftn_trade_fee: NonNegativeFloat
