@@ -11,11 +11,10 @@ from typing import (
 from httpx import HTTPStatusError
 
 from jkit._base import (
-    DATA_OBJECT_CONFIG,
-    CheckableObject,
+    CheckableMixin,
     DataObject,
     ResourceObject,
-    SlugAndUrlObject,
+    SlugAndUrlMixin,
 )
 from jkit._network_request import get_json
 from jkit._normalization import (
@@ -58,7 +57,7 @@ class ArticlePaidStatusEnum(Enum):
     PAID = "付费"
 
 
-class PaidInfoField(DataObject, **DATA_OBJECT_CONFIG):
+class PaidInfoField(DataObject, frozen=True, eq=True, kw_only=True):
     notebook_paid_status: Optional[NotebookPaidStatusEnum]
     article_paid_status: ArticlePaidStatusEnum
     price: Optional[PositiveFloat]
@@ -66,7 +65,7 @@ class PaidInfoField(DataObject, **DATA_OBJECT_CONFIG):
     paid_readers_count: Optional[NonNegativeInt]
 
 
-class AuthorInfoField(DataObject, **DATA_OBJECT_CONFIG):
+class AuthorInfoField(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -83,7 +82,7 @@ class AuthorInfoField(DataObject, **DATA_OBJECT_CONFIG):
         return User.from_slug(self.slug)._as_checked()
 
 
-class ArticleInfo(DataObject, **DATA_OBJECT_CONFIG):
+class ArticleInfo(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     notebook_id: PositiveInt
     title: NonEmptyStr
@@ -108,7 +107,7 @@ class ArticleInfo(DataObject, **DATA_OBJECT_CONFIG):
         return BLANK_LINES_REGEX.sub("\n", result)
 
 
-class ArticleAudioInfo(DataObject, **DATA_OBJECT_CONFIG):
+class ArticleAudioInfo(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     name: NonEmptyStr
     producer: NonEmptyStr
@@ -127,7 +126,7 @@ class ArticleAudioInfo(DataObject, **DATA_OBJECT_CONFIG):
         return self.file_url_expire_time >= datetime.now()
 
 
-class ArticleIncludedCollectionInfo(DataObject, **DATA_OBJECT_CONFIG):
+class ArticleIncludedCollectionInfo(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     slug: CollectionSlug
     name: NonEmptyStr
@@ -147,7 +146,7 @@ class ArticleIncludedCollectionInfo(DataObject, **DATA_OBJECT_CONFIG):
         return (await self.to_collection_obj().info).name
 
 
-class ArticleBelongToNotebookInfo(DataObject, **DATA_OBJECT_CONFIG):
+class ArticleBelongToNotebookInfo(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     name: NonEmptyStr
 
@@ -157,7 +156,7 @@ class ArticleBelongToNotebookInfo(DataObject, **DATA_OBJECT_CONFIG):
         return Notebook.from_id(self.id)
 
 
-class CommentPublisherInfoField(DataObject, **DATA_OBJECT_CONFIG):
+class CommentPublisherInfoField(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -171,7 +170,7 @@ class CommentPublisherInfoField(DataObject, **DATA_OBJECT_CONFIG):
         return User.from_slug(self.slug)._as_checked()
 
 
-class ArticleSubcommentInfo(DataObject, **DATA_OBJECT_CONFIG):
+class ArticleSubcommentInfo(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     content: str
     images: tuple[UserUploadedUrl, ...]
@@ -179,7 +178,7 @@ class ArticleSubcommentInfo(DataObject, **DATA_OBJECT_CONFIG):
     publisher_info: CommentPublisherInfoField
 
 
-class ArticleCommentInfo(DataObject, **DATA_OBJECT_CONFIG):
+class ArticleCommentInfo(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     floor: PositiveInt
     content: str
@@ -195,11 +194,13 @@ class ArticleCommentInfo(DataObject, **DATA_OBJECT_CONFIG):
         return bool(self.subcomments)
 
 
-class ArticleFeaturedCommentInfo(ArticleCommentInfo, **DATA_OBJECT_CONFIG):
+class ArticleFeaturedCommentInfo(
+    ArticleCommentInfo, frozen=True, eq=True, kw_only=True
+):
     score: PositiveInt
 
 
-class Article(ResourceObject, CheckableObject, SlugAndUrlObject):
+class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     _slug_check_func = is_article_slug
     _slug_to_url_func = article_slug_to_url
     _url_to_slug_func = article_url_to_slug

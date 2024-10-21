@@ -1,7 +1,7 @@
 from collections.abc import AsyncGenerator
 from typing import TYPE_CHECKING
 
-from jkit._base import DATA_OBJECT_CONFIG, DataObject, ResourceObject
+from jkit._base import DataObject, ResourceObject
 from jkit._network_request import get_json
 from jkit.config import CONFIG
 from jkit.msgspec_constraints import PositiveInt, UserName, UserSlug, UserUploadedUrl
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from jkit.user import User
 
 
-class UserInfoField(DataObject, **DATA_OBJECT_CONFIG):
+class UserInfoField(DataObject, frozen=True, eq=True, kw_only=True):
     slug: UserSlug
     name: UserName
     avatar_url: UserUploadedUrl
@@ -21,7 +21,7 @@ class UserInfoField(DataObject, **DATA_OBJECT_CONFIG):
         return User.from_slug(self.slug)._as_checked()
 
 
-class DailyUpdateRankingRecord(DataObject, **DATA_OBJECT_CONFIG):
+class DailyUpdateRankingRecord(DataObject, frozen=True, eq=True, kw_only=True):
     ranking: PositiveInt
     days: PositiveInt
     user_info: UserInfoField

@@ -2,7 +2,7 @@ from collections.abc import AsyncGenerator
 from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING, Literal, Optional
 
-from jkit._base import DATA_OBJECT_CONFIG, DataObject, ResourceObject
+from jkit._base import DataObject, ResourceObject
 from jkit._network_request import get_json
 from jkit._normalization import normalize_assets_amount
 from jkit.config import CONFIG
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from jkit.user import User
 
 
-class RecordField(DataObject, **DATA_OBJECT_CONFIG):
+class RecordField(DataObject, frozen=True, eq=True, kw_only=True):
     ranking: PositiveInt
     name: UserName
     slug: UserSlug
@@ -35,7 +35,7 @@ class RecordField(DataObject, **DATA_OBJECT_CONFIG):
         return User.from_slug(self.slug)._as_checked()
 
 
-class UserEarningRankingData(DataObject, **DATA_OBJECT_CONFIG):
+class UserEarningRankingData(DataObject, frozen=True, eq=True, kw_only=True):
     total_fp_amount_sum: PositiveFloat
     fp_by_creating_amount_sum: PositiveFloat
     fp_by_voting_amount_sum: PositiveFloat

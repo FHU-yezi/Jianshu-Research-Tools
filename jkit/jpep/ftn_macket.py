@@ -2,7 +2,7 @@ from collections.abc import AsyncGenerator
 from enum import Enum
 from typing import Literal, Optional
 
-from jkit._base import DATA_OBJECT_CONFIG, DataObject, ResourceObject
+from jkit._base import DataObject, ResourceObject
 from jkit._network_request import send_post
 from jkit._normalization import normalize_datetime
 from jkit.config import CONFIG
@@ -21,7 +21,7 @@ class PaymentChannels(Enum):
     ANT_CREDIT_PAY = "蚂蚁花呗"
 
 
-class PublisherInfoField(DataObject, **DATA_OBJECT_CONFIG):
+class PublisherInfoField(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     name: NonEmptyStr
     hashed_name: NonEmptyStr
@@ -29,7 +29,7 @@ class PublisherInfoField(DataObject, **DATA_OBJECT_CONFIG):
     credit: NonNegativeInt
 
 
-class FTNMacketOrderRecord(DataObject, **DATA_OBJECT_CONFIG):
+class FTNMacketOrderRecord(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     price: PositiveFloat
 

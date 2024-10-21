@@ -1,7 +1,7 @@
 from collections.abc import AsyncGenerator
 from typing import TYPE_CHECKING, Any
 
-from jkit._base import DATA_OBJECT_CONFIG, DataObject, ResourceObject
+from jkit._base import DataObject, ResourceObject
 from jkit._network_request import get_json
 from jkit._normalization import normalize_datetime
 from jkit.config import CONFIG
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from jkit.user import User
 
 
-class UserInfoField(DataObject, **DATA_OBJECT_CONFIG):
+class UserInfoField(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -30,7 +30,7 @@ class UserInfoField(DataObject, **DATA_OBJECT_CONFIG):
         return User.from_slug(self.slug)._as_checked()
 
 
-class LotteryWinRecord(DataObject, **DATA_OBJECT_CONFIG):
+class LotteryWinRecord(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     time: NormalizedDatetime
     award_name: NonEmptyStr

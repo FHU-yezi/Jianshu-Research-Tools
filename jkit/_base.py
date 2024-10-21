@@ -8,12 +8,12 @@ from jkit.config import CONFIG
 from jkit.exceptions import ValidationError
 
 T = TypeVar("T", bound="DataObject")
-P1 = TypeVar("P1", bound="CheckableObject")
-P2 = TypeVar("P2", bound="SlugAndUrlObject")
-P3 = TypeVar("P3", bound="IdAndUrlObject")
+P1 = TypeVar("P1", bound="CheckableMixin")
+P2 = TypeVar("P2", bound="SlugAndUrlMixin")
+P3 = TypeVar("P3", bound="IdAndUrlMixin")
 
 
-class DataObject(Struct):
+class DataObject(Struct, frozen=True, eq=True, kw_only=True):
     def _validate(self: T) -> T:
         if not CONFIG.data_validation.enabled:
             return self
@@ -40,18 +40,11 @@ class DataObject(Struct):
         )
 
 
-DATA_OBJECT_CONFIG = {
-    "frozen": True,
-    "eq": False,
-    "kw_only": True,
-}
-
-
 class ResourceObject:
     pass
 
 
-class CheckableObject(metaclass=ABCMeta):
+class CheckableMixin(metaclass=ABCMeta):
     def __init__(self) -> None:
         self._checked = False
 
@@ -73,7 +66,7 @@ class CheckableObject(metaclass=ABCMeta):
         return self
 
 
-class SlugAndUrlObject:
+class SlugAndUrlMixin:
     _slug_check_func: ClassVar[Optional[Callable[[str], bool]]] = None
     _slug_to_url_func: ClassVar[Optional[Callable[[str], str]]] = None
     _url_to_slug_func: ClassVar[Optional[Callable[[str], str]]] = None
@@ -147,7 +140,7 @@ class SlugAndUrlObject:
         return f'{self.__class__.__name__}(slug="{self.slug}")'
 
 
-class IdAndUrlObject(metaclass=ABCMeta):
+class IdAndUrlMixin(metaclass=ABCMeta):
     @classmethod
     @abstractmethod
     def from_id(cls: type[P3], id: int, /) -> P3:  # noqa: A002

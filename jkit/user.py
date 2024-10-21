@@ -11,11 +11,10 @@ from typing import (
 from httpx import HTTPStatusError
 
 from jkit._base import (
-    DATA_OBJECT_CONFIG,
-    CheckableObject,
+    CheckableMixin,
     DataObject,
     ResourceObject,
-    SlugAndUrlObject,
+    SlugAndUrlMixin,
 )
 from jkit._network_request import get_html, get_json
 from jkit._normalization import normalize_assets_amount, normalize_datetime
@@ -44,7 +43,7 @@ if TYPE_CHECKING:
 ASSETS_AMOUNT_REGEX = re_compile(r"收获喜欢[\s\S]*?<p>(.*)</p>[\s\S]*?总资产")
 
 
-class UserBadge(DataObject, **DATA_OBJECT_CONFIG):
+class UserBadge(DataObject, frozen=True, eq=True, kw_only=True):
     name: NonEmptyStr
     introduction_url: str
     image_url: NonEmptyStr
@@ -66,12 +65,12 @@ class GenderEnum(Enum):
     FEMALE = "女"
 
 
-class MembershipInfoField(DataObject, **DATA_OBJECT_CONFIG):
+class MembershipInfoField(DataObject, frozen=True, eq=True, kw_only=True):
     type: MembershipEnum
     expired_at: Optional[NormalizedDatetime]
 
 
-class UserInfo(DataObject, **DATA_OBJECT_CONFIG):
+class UserInfo(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     name: UserName
     gender: GenderEnum
@@ -90,7 +89,7 @@ class UserInfo(DataObject, **DATA_OBJECT_CONFIG):
     fp_amount: NonNegativeFloat
 
 
-class UserCollectionInfo(DataObject, **DATA_OBJECT_CONFIG):
+class UserCollectionInfo(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     slug: CollectionSlug
     name: NonEmptyStr
@@ -102,7 +101,7 @@ class UserCollectionInfo(DataObject, **DATA_OBJECT_CONFIG):
         return Collection.from_slug(self.slug)._as_checked()
 
 
-class UserNotebookInfo(DataObject, **DATA_OBJECT_CONFIG):
+class UserNotebookInfo(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     name: NonEmptyStr
     is_serial: bool
@@ -114,7 +113,7 @@ class UserNotebookInfo(DataObject, **DATA_OBJECT_CONFIG):
         return Notebook.from_id(self.id)
 
 
-class ArticleAuthorInfoField(DataObject, **DATA_OBJECT_CONFIG):
+class ArticleAuthorInfoField(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -126,7 +125,7 @@ class ArticleAuthorInfoField(DataObject, **DATA_OBJECT_CONFIG):
         return User.from_slug(self.slug)._as_checked()
 
 
-class UserArticleInfo(DataObject, **DATA_OBJECT_CONFIG):
+class UserArticleInfo(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     slug: ArticleSlug
     title: NonEmptyStr
@@ -150,7 +149,7 @@ class UserArticleInfo(DataObject, **DATA_OBJECT_CONFIG):
         return Article.from_slug(self.slug)._as_checked()
 
 
-class User(ResourceObject, CheckableObject, SlugAndUrlObject):
+class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     _slug_check_func = is_user_slug
     _slug_to_url_func = user_slug_to_url
     _url_to_slug_func = user_url_to_slug

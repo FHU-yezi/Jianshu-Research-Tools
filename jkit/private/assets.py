@@ -7,7 +7,7 @@ from typing import Optional, Union
 from httpx import HTTPStatusError
 from msgspec import DecodeError
 
-from jkit._base import DATA_OBJECT_CONFIG, DataObject, ResourceObject
+from jkit._base import DataObject, ResourceObject
 from jkit._network_request import JSON_DECODER, get_json, send_post
 from jkit._normalization import (
     normalize_assets_amount,
@@ -27,7 +27,7 @@ from jkit.msgspec_constraints import (
 )
 
 
-class AssetsTransactionRecord(DataObject, **DATA_OBJECT_CONFIG):
+class AssetsTransactionRecord(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     time: NormalizedDatetime
     type_id: PositiveInt
@@ -36,7 +36,7 @@ class AssetsTransactionRecord(DataObject, **DATA_OBJECT_CONFIG):
     amount_precise: Decimal
 
 
-class FPRewardsRecord(DataObject, **DATA_OBJECT_CONFIG):
+class FPRewardsRecord(DataObject, frozen=True, eq=True, kw_only=True):
     time: NormalizedDatetime
     own_amount: Decimal
     level1_referral_amount: Decimal
@@ -44,12 +44,12 @@ class FPRewardsRecord(DataObject, **DATA_OBJECT_CONFIG):
     total_amount: Decimal
 
 
-class BenefitCardsInfo(DataObject, **DATA_OBJECT_CONFIG):
+class BenefitCardsInfo(DataObject, frozen=True, eq=True, kw_only=True):
     total_amount: NonNegativeFloat
     estimated_benefits_percent: Percentage
 
 
-class UnusedBenfitCardRecord(DataObject, **DATA_OBJECT_CONFIG):
+class UnusedBenfitCardRecord(DataObject, frozen=True, eq=True, kw_only=True):
     amount: NonNegativeFloat
     start_time: NormalizedDatetime
     end_time: NormalizedDatetime
@@ -59,7 +59,7 @@ class UnusedBenfitCardRecord(DataObject, **DATA_OBJECT_CONFIG):
         return self.start_time <= datetime.now() <= self.end_time
 
 
-class ActiveBenfitCardRecord(DataObject, **DATA_OBJECT_CONFIG):
+class ActiveBenfitCardRecord(DataObject, frozen=True, eq=True, kw_only=True):
     amount: NonNegativeFloat
     start_time: NormalizedDatetime
     end_time: NormalizedDatetime
@@ -70,7 +70,7 @@ class ActiveBenfitCardRecord(DataObject, **DATA_OBJECT_CONFIG):
         return self.start_time <= datetime.now() <= self.end_time
 
 
-class ExpiredBenfitCardRecord(DataObject, **DATA_OBJECT_CONFIG):
+class ExpiredBenfitCardRecord(DataObject, frozen=True, eq=True, kw_only=True):
     amount: NonNegativeFloat
     start_time: NormalizedDatetime
     end_time: NormalizedDatetime

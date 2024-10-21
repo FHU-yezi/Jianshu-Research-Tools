@@ -4,10 +4,9 @@ from typing import TYPE_CHECKING, Any, Literal, Optional, TypeVar
 from httpx import HTTPStatusError
 
 from jkit._base import (
-    DATA_OBJECT_CONFIG,
-    CheckableObject,
+    CheckableMixin,
     DataObject,
-    IdAndUrlObject,
+    IdAndUrlMixin,
     ResourceObject,
 )
 from jkit._network_request import get_json
@@ -36,7 +35,7 @@ if TYPE_CHECKING:
 T = TypeVar("T", bound="Notebook")
 
 
-class AuthorInfoField(DataObject, **DATA_OBJECT_CONFIG):
+class AuthorInfoField(DataObject, frozen=True, eq=True, kw_only=True):
     slug: UserSlug
     name: UserName
     avatar_url: UserUploadedUrl
@@ -47,7 +46,7 @@ class AuthorInfoField(DataObject, **DATA_OBJECT_CONFIG):
         return User.from_slug(self.slug)._as_checked()
 
 
-class NotebookInfo(DataObject, **DATA_OBJECT_CONFIG):
+class NotebookInfo(DataObject, frozen=True, eq=True, kw_only=True):
     id: NotebookId
     name: NonEmptyStr
     description_updated_at: NormalizedDatetime
@@ -58,7 +57,7 @@ class NotebookInfo(DataObject, **DATA_OBJECT_CONFIG):
     total_wordage: NonNegativeInt
 
 
-class ArticleAuthorInfoField(DataObject, **DATA_OBJECT_CONFIG):
+class ArticleAuthorInfoField(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -70,7 +69,7 @@ class ArticleAuthorInfoField(DataObject, **DATA_OBJECT_CONFIG):
         return User.from_slug(self.slug)._as_checked()
 
 
-class NotebookArticleInfo(DataObject, **DATA_OBJECT_CONFIG):
+class NotebookArticleInfo(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     slug: ArticleSlug
     title: NonEmptyStr
@@ -93,7 +92,7 @@ class NotebookArticleInfo(DataObject, **DATA_OBJECT_CONFIG):
         return Article.from_slug(self.slug)._as_checked()
 
 
-class Notebook(ResourceObject, CheckableObject, IdAndUrlObject):
+class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
     def __init__(self, *, id: int) -> None:  # noqa: A002
         super().__init__()
         self._checked = False

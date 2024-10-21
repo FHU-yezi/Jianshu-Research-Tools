@@ -9,11 +9,10 @@ from typing import (
 from httpx import HTTPStatusError
 
 from jkit._base import (
-    DATA_OBJECT_CONFIG,
-    CheckableObject,
+    CheckableMixin,
     DataObject,
     ResourceObject,
-    SlugAndUrlObject,
+    SlugAndUrlMixin,
 )
 from jkit._network_request import get_json
 from jkit._normalization import normalize_assets_amount, normalize_datetime
@@ -39,7 +38,7 @@ if TYPE_CHECKING:
     from jkit.user import User
 
 
-class OwnerInfoField(DataObject, **DATA_OBJECT_CONFIG):
+class OwnerInfoField(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -50,7 +49,7 @@ class OwnerInfoField(DataObject, **DATA_OBJECT_CONFIG):
         return User.from_slug(self.slug)._as_checked()
 
 
-class CollectionInfo(DataObject, **DATA_OBJECT_CONFIG):
+class CollectionInfo(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     slug: CollectionSlug
     name: NonEmptyStr
@@ -64,7 +63,7 @@ class CollectionInfo(DataObject, **DATA_OBJECT_CONFIG):
     subscribers_count: NonNegativeInt
 
 
-class ArticleAuthorInfoField(DataObject, **DATA_OBJECT_CONFIG):
+class ArticleAuthorInfoField(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -76,7 +75,7 @@ class ArticleAuthorInfoField(DataObject, **DATA_OBJECT_CONFIG):
         return User.from_slug(self.slug)._as_checked()
 
 
-class CollectionArticleInfo(DataObject, **DATA_OBJECT_CONFIG):
+class CollectionArticleInfo(DataObject, frozen=True, eq=True, kw_only=True):
     id: PositiveInt
     slug: ArticleSlug
     title: NonEmptyStr
@@ -99,7 +98,7 @@ class CollectionArticleInfo(DataObject, **DATA_OBJECT_CONFIG):
         return Article.from_slug(self.slug)._as_checked()
 
 
-class Collection(ResourceObject, CheckableObject, SlugAndUrlObject):
+class Collection(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     _slug_check_func = is_collection_slug
     _slug_to_url_func = collection_slug_to_url
     _url_to_slug_func = collection_url_to_slug

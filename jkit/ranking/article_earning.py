@@ -2,7 +2,7 @@ from collections.abc import AsyncGenerator
 from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING, Optional
 
-from jkit._base import DATA_OBJECT_CONFIG, DataObject, ResourceObject
+from jkit._base import DataObject, ResourceObject
 from jkit._network_request import get_json
 from jkit._normalization import normalize_assets_amount
 from jkit.config import CONFIG
@@ -20,12 +20,12 @@ if TYPE_CHECKING:
     from jkit.article import Article
 
 
-class AuthorInfoField(DataObject, **DATA_OBJECT_CONFIG):
+class AuthorInfoField(DataObject, frozen=True, eq=True, kw_only=True):
     name: Optional[UserName]
     avatar_url: Optional[UserUploadedUrl]
 
 
-class RecordField(DataObject, **DATA_OBJECT_CONFIG):
+class RecordField(DataObject, frozen=True, eq=True, kw_only=True):
     ranking: PositiveInt
     title: Optional[NonEmptyStr]
     slug: Optional[ArticleSlug]
@@ -47,7 +47,7 @@ class RecordField(DataObject, **DATA_OBJECT_CONFIG):
         return Article.from_slug(self.slug)._as_checked()
 
 
-class ArticleEarningRankingData(DataObject, **DATA_OBJECT_CONFIG):
+class ArticleEarningRankingData(DataObject, frozen=True, eq=True, kw_only=True):
     total_fp_amount_sum: PositiveFloat
     fp_to_author_amount_sum: PositiveFloat
     fp_to_voter_amount_sum: PositiveFloat
