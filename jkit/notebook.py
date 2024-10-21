@@ -122,8 +122,13 @@ class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
                 endpoint=CONFIG.endpoints.jianshu, path=f"/asimov/nb/{self.id}"
             )
             self._checked = True
-        except HTTPStatusError:
-            raise ResourceUnavailableError(f"文集 {self.url} 不存在或删除") from None
+        except HTTPStatusError as e:
+            if e.response.status_code == 404:
+                raise ResourceUnavailableError(
+                    f"文集 {self.url} 不存在或已删除"
+                ) from None
+
+            raise
 
     @property
     async def info(self) -> NotebookInfo:

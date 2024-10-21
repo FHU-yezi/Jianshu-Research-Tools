@@ -124,10 +124,13 @@ class Collection(ResourceObject, CheckableMixin, SlugAndUrlMixin):
                 path=f"/asimov/collections/slug/{self.slug}",
             )
             self._checked = True
-        except HTTPStatusError:
-            raise ResourceUnavailableError(
-                f"专题 {self.url} 不存在或已被删除"
-            ) from None
+        except HTTPStatusError as e:
+            if e.response.status_code == 404:
+                raise ResourceUnavailableError(
+                    f"专题 {self.url} 不存在或已被删除"
+                ) from None
+
+            raise
 
     @property
     async def info(self) -> CollectionInfo:

@@ -226,10 +226,13 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
                 path=f"/asimov/p/{self.slug}",
             )
             self._checked = True
-        except HTTPStatusError:
-            raise ResourceUnavailableError(
-                f"文章 {self.url} 不存在或已被删除 / 私密 / 锁定"
-            ) from None
+        except HTTPStatusError as e:
+            if e.response.status_code == 404:
+                raise ResourceUnavailableError(
+                    f"文章 {self.url} 不存在或已被删除 / 私密 / 锁定"
+                ) from None
+
+            raise
 
     @property
     async def id(self) -> int:
