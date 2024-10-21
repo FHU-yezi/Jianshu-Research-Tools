@@ -1,14 +1,11 @@
+from collections.abc import AsyncGenerator
 from datetime import datetime
 from enum import Enum
 from typing import (
     TYPE_CHECKING,
     Any,
-    AsyncGenerator,
-    Dict,
-    List,
     Literal,
     Optional,
-    Tuple,
 )
 
 from httpx import HTTPStatusError
@@ -177,7 +174,7 @@ class CommentPublisherInfoField(DataObject, **DATA_OBJECT_CONFIG):
 class ArticleSubcommentInfo(DataObject, **DATA_OBJECT_CONFIG):
     id: PositiveInt
     content: str
-    images: Tuple[UserUploadedUrl, ...]
+    images: tuple[UserUploadedUrl, ...]
     published_at: NormalizedDatetime
     publisher_info: CommentPublisherInfoField
 
@@ -186,12 +183,12 @@ class ArticleCommentInfo(DataObject, **DATA_OBJECT_CONFIG):
     id: PositiveInt
     floor: PositiveInt
     content: str
-    images: Tuple[UserUploadedUrl, ...]
+    images: tuple[UserUploadedUrl, ...]
     likes_count: NonNegativeInt
     published_at: NormalizedDatetime
     publisher_info: CommentPublisherInfoField
 
-    subcomments: Tuple[ArticleSubcommentInfo, ...]
+    subcomments: tuple[ArticleSubcommentInfo, ...]
 
     @property
     def has_subcomment(self) -> bool:
@@ -443,7 +440,7 @@ class Article(ResourceObject, CheckableObject, SlugAndUrlObject):
     ) -> AsyncGenerator[ArticleFeaturedCommentInfo, None]:
         await self._auto_check()
 
-        data: List[Dict[str, Any]] = await get_json(
+        data: list[dict[str, Any]] = await get_json(
             endpoint=CONFIG.endpoints.jianshu,
             path=f"/shakespeare/notes/{self.slug}/featured_comments",
             params={

@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List
+from collections.abc import AsyncGenerator
+from typing import TYPE_CHECKING, Any
 
 from jkit._base import DATA_OBJECT_CONFIG, DataObject, ResourceObject
 from jkit._network_request import get_json
@@ -41,7 +42,7 @@ class Lottery(ResourceObject):
     async def iter_win_records(
         self, *, count: int = 100
     ) -> AsyncGenerator[LotteryWinRecord, None]:
-        data: List[Dict[str, Any]] = await get_json(
+        data: list[dict[str, Any]] = await get_json(
             endpoint=CONFIG.endpoints.jianshu,
             path="/asimov/ad_rewards/winner_list",
             params={"count": count},

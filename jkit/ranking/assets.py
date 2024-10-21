@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, AsyncGenerator, Optional
+from collections.abc import AsyncGenerator
+from typing import TYPE_CHECKING, Optional
 
 from jkit._base import DATA_OBJECT_CONFIG, DataObject, ResourceObject
 from jkit._network_request import get_json

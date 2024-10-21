@@ -1,5 +1,6 @@
+from collections.abc import AsyncGenerator
 from enum import Enum
-from typing import AsyncGenerator, Literal, Optional, Tuple
+from typing import Literal, Optional
 
 from jkit._base import DATA_OBJECT_CONFIG, DataObject, ResourceObject
 from jkit._network_request import send_post
@@ -39,7 +40,7 @@ class FTNMacketOrderRecord(DataObject, **DATA_OBJECT_CONFIG):
 
     traded_count: NonNegativeInt
     publish_time: NormalizedDatetime
-    supported_payment_channels: Tuple[PaymentChannels, ...]
+    supported_payment_channels: tuple[PaymentChannels, ...]
 
     publisher_info: PublisherInfoField
 

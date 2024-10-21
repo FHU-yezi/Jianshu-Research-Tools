@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Callable, ClassVar, List, Optional
+from typing import Callable, ClassVar, Optional
 
 from msgspec import Struct, convert, to_builtins
 from msgspec import ValidationError as MsgspecValidationError
@@ -20,7 +20,7 @@ class DataObject(Struct):
             raise ValidationError(e.args[0]) from None
 
     def __repr__(self) -> str:
-        field_strings: List[str] = []
+        field_strings: list[str] = []
         for field in self.__struct_fields__:
             value = self.__getattribute__(field)
 

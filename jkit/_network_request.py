@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from msgspec.json import Decoder
 
@@ -12,9 +12,9 @@ async def get_json(
     *,
     endpoint: str,
     path: str,
-    params: Optional[Dict[str, Any]] = None,
-    cookies: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    params: Optional[dict[str, Any]] = None,
+    cookies: Optional[dict[str, Any]] = None,
+) -> dict[str, Any]:
     response = await HTTP_CLIENT.get(
         f"{endpoint}{path}",
         params=params,
@@ -29,11 +29,11 @@ async def send_post(
     *,
     endpoint: str,
     path: str,
-    params: Optional[Dict[str, Any]] = None,
-    json: Optional[Dict[str, Any]] = None,
-    headers: Optional[Dict[str, Any]] = None,
-    cookies: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    params: Optional[dict[str, Any]] = None,
+    json: Optional[dict[str, Any]] = None,
+    headers: Optional[dict[str, Any]] = None,
+    cookies: Optional[dict[str, Any]] = None,
+) -> dict[str, Any]:
     response = await HTTP_CLIENT.post(
         f"{endpoint}{path}",
         params=params,

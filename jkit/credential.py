@@ -1,5 +1,3 @@
-from typing import Dict
-
 from jkit._base import ResourceObject
 
 
@@ -12,5 +10,5 @@ class JianshuCredential(ResourceObject):
         return self._token
 
     @property
-    def cookies(self) -> Dict[str, str]:
+    def cookies(self) -> dict[str, str]:
         return {"remember_user_token": self.token}

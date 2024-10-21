@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List, Literal, Optional
+from collections.abc import AsyncGenerator
+from typing import TYPE_CHECKING, Any, Literal, Optional
 
 from httpx import HTTPStatusError
 from typing_extensions import Self
@@ -157,7 +158,7 @@ class Notebook(ResourceObject, CheckableObject, IdAndUrlObject):
 
         now_page = start_page
         while True:
-            data: List[Dict[str, Any]] = await get_json(
+            data: list[dict[str, Any]] = await get_json(
                 endpoint=CONFIG.endpoints.jianshu,
                 path=f"/asimov/notebooks/{self.id}/public_notes",
                 params={

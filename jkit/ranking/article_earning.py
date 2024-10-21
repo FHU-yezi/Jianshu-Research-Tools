@@ -1,5 +1,6 @@
+from collections.abc import AsyncGenerator
 from datetime import date, datetime, timedelta
-from typing import TYPE_CHECKING, AsyncGenerator, Optional, Tuple
+from typing import TYPE_CHECKING, Optional
 
 from jkit._base import DATA_OBJECT_CONFIG, DataObject, ResourceObject
 from jkit._network_request import get_json
@@ -50,7 +51,7 @@ class ArticleEarningRankingData(DataObject, **DATA_OBJECT_CONFIG):
     total_fp_amount_sum: PositiveFloat
     fp_to_author_amount_sum: PositiveFloat
     fp_to_voter_amount_sum: PositiveFloat
-    records: Tuple[RecordField, ...]
+    records: tuple[RecordField, ...]
 
 
 class ArticleEarningRanking(ResourceObject):

@@ -1,14 +1,11 @@
+from collections.abc import AsyncGenerator
 from enum import Enum
 from re import compile as re_compile
 from typing import (
     TYPE_CHECKING,
     Any,
-    AsyncGenerator,
-    Dict,
-    List,
     Literal,
     Optional,
-    Tuple,
 )
 
 from httpx import HTTPStatusError
@@ -82,7 +79,7 @@ class UserInfo(DataObject, **DATA_OBJECT_CONFIG):
     introduction_updated_at: NormalizedDatetime
     avatar_url: UserUploadedUrl
     background_image_url: Optional[UserUploadedUrl]
-    badges: Tuple[UserBadge, ...]
+    badges: tuple[UserBadge, ...]
     membership_info: MembershipInfoField
     address_by_ip: NonEmptyStr
 
@@ -368,7 +365,7 @@ class User(ResourceObject, CheckableObject, SlugAndUrlObject):
 
         now_page = start_page
         while True:
-            data: List[Dict[str, Any]] = await get_json(
+            data: list[dict[str, Any]] = await get_json(
                 endpoint=CONFIG.endpoints.jianshu,
                 path=f"/asimov/users/slug/{self.slug}/public_notes",
                 params={

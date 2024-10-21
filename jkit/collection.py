@@ -1,9 +1,7 @@
+from collections.abc import AsyncGenerator
 from typing import (
     TYPE_CHECKING,
     Any,
-    AsyncGenerator,
-    Dict,
-    List,
     Literal,
     Optional,
 )
@@ -169,7 +167,7 @@ class Collection(ResourceObject, CheckableObject, SlugAndUrlObject):
 
         now_page = start_page
         while True:
-            data: List[Dict[str, Any]] = await get_json(
+            data: list[dict[str, Any]] = await get_json(
                 endpoint=CONFIG.endpoints.jianshu,
                 path=f"/asimov/collections/slug/{self.slug}/public_notes",
                 params={

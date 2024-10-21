@@ -1,7 +1,8 @@
+from collections.abc import AsyncGenerator
 from contextlib import suppress
 from datetime import datetime
 from decimal import Decimal
-from typing import AsyncGenerator, Optional, Union
+from typing import Optional, Union
 
 from httpx import HTTPStatusError
 from msgspec import DecodeError
