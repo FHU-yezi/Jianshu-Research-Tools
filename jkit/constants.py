@@ -20,6 +20,7 @@ ISLAND_URL_REGEX = regex_compile(r"^https://www\.jianshu\.com/g/[a-zA-Z0-9]{16}/
 USER_SLUG_REGEX = ARTICLE_SLUG_REGEX = COLLECTION_SLUG_REGEX = regex_compile(
     r"^[a-z0-9]{12}$|^[a-zA-z0-9]{6}$"
 )
+ISLAND_SLUG_REGEX = regex_compile(r"^[a-z0-9]{16}$")
 
 NOTEBOOK_ID_MIN = 100000
 NOTEBOOK_ID_MAX = 99999999
