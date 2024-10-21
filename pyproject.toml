@@ -1,13 +1,12 @@
-[tool.poetry]
+[project]
 name = "jkit"
 version = "3.0.0a16"
 description = "简书非官方 SDK - 创造可能性"
 readme = "README.md"
-license = "MIT"
-authors = ["yezi <yehaowei20060411@qq.com>"]
-repository = "https://github.com/FHU-yezi/JKit"
-keywords = ["jianshu", "SDK"]
-
+license = {file = "LICENSE"}
+authors = [
+  {name = "FHU-yezi", email = "yehaowei20060411@qq.com"},
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Framework :: AsyncIO",
@@ -19,25 +18,21 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
     "Typing :: Typed",
 ]
+requires-python = ">=3.8"
+dependencies = [
+    "httpx[http2]",
+    "msgspec",
+    "typing-extensions",
+]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-httpx = {extras = ["http2"], version = "*"}
-msgspec = "*"
-typing-extensions = "*"
-
-[tool.poetry.group.dev.dependencies]
-ruff = "^0.3.0"
-pyright = "^1.1.0"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.uv]
+dev-dependencies = [
+    "pyright>=1.1.0",
+    "ruff>=0.7.0",
+]
 
 [tool.ruff]
-
 target-version = "py38"
-
 lint.select = [
     "A", "ANN", "ARG", "ASYNC", "B",
     "BLE", "C4", "E", "F", "I",
