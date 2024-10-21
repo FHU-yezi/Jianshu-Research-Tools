@@ -98,7 +98,7 @@ class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
         self._checked = False
 
         if not is_notebook_id(id):
-            raise ValueError(f"{id} 不是有效的文集 ID")
+            raise ValueError(f"文集 ID 无效：{id}")
         self._id = id
 
     @classmethod
@@ -125,7 +125,7 @@ class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
         except HTTPStatusError as e:
             if e.response.status_code == 404:
                 raise ResourceUnavailableError(
-                    f"文集 {self.url} 不存在或已删除"
+                    f"文集 {self.url} 不存在或已被删除"
                 ) from None
 
             raise

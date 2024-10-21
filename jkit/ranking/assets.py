@@ -6,6 +6,7 @@ from jkit._network_request import get_json
 from jkit._normalization import normalize_assets_amount
 from jkit.config import CONFIG
 from jkit.exceptions import ResourceUnavailableError
+from jkit.identifier_convert import user_slug_to_url
 from jkit.msgspec_constraints import (
     NonNegativeFloat,
     PositiveInt,
@@ -28,7 +29,11 @@ class UserInfoField(DataObject, frozen=True):
         from jkit.user import User
 
         if not self.slug:
-            raise ResourceUnavailableError("用户已注销或被封禁")
+            raise ResourceUnavailableError(
+                f"用户 {user_slug_to_url(self.slug)} 不存在或已注销 / 被封禁"
+                if self.slug
+                else "用户不存在或已注销 / 被封禁"
+            )
 
         return User.from_slug(self.slug)._as_checked()
 

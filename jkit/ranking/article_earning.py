@@ -7,6 +7,7 @@ from jkit._network_request import get_json
 from jkit._normalization import normalize_assets_amount
 from jkit.config import CONFIG
 from jkit.exceptions import APIUnsupportedError
+from jkit.identifier_convert import article_slug_to_url
 from jkit.msgspec_constraints import (
     ArticleSlug,
     NonEmptyStr,
@@ -40,7 +41,11 @@ class RecordField(DataObject, frozen=True):
 
     def to_article_obj(self) -> "Article":
         if not self.slug:
-            raise APIUnsupportedError("文章走丢了，可能已被作者删除 / 私密或被锁定")
+            raise APIUnsupportedError(
+                f"文章 {article_slug_to_url(self.slug)} 不存在或已被删除 / 私密 / 锁定"
+                if self.slug
+                else "文章不存在或已被删除 / 私密 / 锁定"
+            )
 
         from jkit.article import Article
 
@@ -60,9 +65,9 @@ class ArticleEarningRanking(ResourceObject):
             target_date = datetime.now().date() - timedelta(days=1)
 
         if target_date < date(2020, 6, 20):
-            raise APIUnsupportedError("不支持获取 2020.06.20 前的排行榜数据")
+            raise APIUnsupportedError("受 API 限制，无法获取 2020.06.20 前的排行榜数据")
         if target_date >= datetime.now().date():
-            raise ValueError("不支持获取未来的排行榜数据")
+            raise ValueError("无法获取未来的排行榜数据")
 
         self._target_date = target_date
 
