@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import AsyncGenerator
 from datetime import datetime
 from enum import Enum
@@ -58,11 +60,11 @@ class ArticlePaidStatusEnum(Enum):
 
 
 class PaidInfoField(DataObject, frozen=True):
-    notebook_paid_status: Optional[NotebookPaidStatusEnum]
+    notebook_paid_status: NotebookPaidStatusEnum | None
     article_paid_status: ArticlePaidStatusEnum
-    price: Optional[PositiveFloat]
-    paid_cotent_percent: Optional[Percentage]
-    paid_readers_count: Optional[NonNegativeInt]
+    price: PositiveFloat | None
+    paid_cotent_percent: Percentage | None
+    paid_readers_count: NonNegativeInt | None
 
 
 class AuthorInfoField(DataObject, frozen=True):
@@ -76,7 +78,7 @@ class AuthorInfoField(DataObject, frozen=True):
     total_wordage: NonNegativeInt
     total_likes_count: NonNegativeInt
 
-    def to_user_obj(self) -> "User":
+    def to_user_obj(self) -> User:
         from jkit.user import User
 
         return User.from_slug(self.slug)._as_checked()
@@ -133,7 +135,7 @@ class ArticleIncludedCollectionInfo(DataObject, frozen=True):
     image_url: UserUploadedUrl
     owner_name: UserName
 
-    def to_collection_obj(self) -> "Collection":
+    def to_collection_obj(self) -> Collection:
         from jkit.collection import Collection
 
         return Collection.from_slug(self.slug)._as_checked()
@@ -150,7 +152,7 @@ class ArticleBelongToNotebookInfo(DataObject, frozen=True):
     id: PositiveInt
     name: NonEmptyStr
 
-    def to_notebook_obj(self) -> "Notebook":
+    def to_notebook_obj(self) -> Notebook:
         from jkit.notebook import Notebook
 
         return Notebook.from_id(self.id)
@@ -164,7 +166,7 @@ class CommentPublisherInfoField(DataObject, frozen=True):
     address_by_ip: NonEmptyStr
 
     @property
-    def to_user_obj(self) -> "User":
+    def to_user_obj(self) -> User:
         from jkit.user import User
 
         return User.from_slug(self.slug)._as_checked()
@@ -206,7 +208,10 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     _url_to_slug_func = article_url_to_slug
 
     def __init__(
-        self, *, slug: Optional[str] = None, url: Optional[str] = None
+        self,
+        *,
+        slug: str | None = None,
+        url: Optional[str] = None,  # noqa: UP007
     ) -> None:
         super().__init__()
 
@@ -313,7 +318,7 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
         return data["views_count"]
 
     @property
-    async def audio_info(self) -> Optional[ArticleAudioInfo]:
+    async def audio_info(self) -> ArticleAudioInfo | None:
         await self._auto_check()
 
         data = await get_json(

@@ -1,4 +1,6 @@
-from typing import Any, Optional
+from __future__ import annotations
+
+from typing import Any
 
 from msgspec.json import Decoder
 
@@ -12,8 +14,8 @@ async def get_json(
     *,
     endpoint: str,
     path: str,
-    params: Optional[dict[str, Any]] = None,
-    cookies: Optional[dict[str, Any]] = None,
+    params: dict[str, Any] | None = None,
+    cookies: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     response = await HTTP_CLIENT.get(
         f"{endpoint}{path}",
@@ -25,14 +27,14 @@ async def get_json(
     return JSON_DECODER.decode(response.content)
 
 
-async def send_post(
+async def send_post(  # noqa: PLR0913
     *,
     endpoint: str,
     path: str,
-    params: Optional[dict[str, Any]] = None,
-    json: Optional[dict[str, Any]] = None,
-    headers: Optional[dict[str, Any]] = None,
-    cookies: Optional[dict[str, Any]] = None,
+    params: dict[str, Any] | None = None,
+    json: dict[str, Any] | None = None,
+    headers: dict[str, Any] | None = None,
+    cookies: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     response = await HTTP_CLIENT.post(
         f"{endpoint}{path}",

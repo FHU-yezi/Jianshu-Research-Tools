@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from collections.abc import AsyncGenerator
 from datetime import date, datetime, timedelta
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import TYPE_CHECKING, Literal
 
 from jkit._base import DataObject, ResourceObject
 from jkit._network_request import get_json
@@ -29,7 +31,7 @@ class RecordField(DataObject, frozen=True):
     fp_by_creating_anount: NonNegativeFloat
     fp_by_voting_amount: NonNegativeFloat
 
-    def to_user_obj(self) -> "User":
+    def to_user_obj(self) -> User:
         from jkit.user import User
 
         return User.from_slug(self.slug)._as_checked()
@@ -45,7 +47,7 @@ class UserEarningRankingData(DataObject, frozen=True):
 class UserEarningRanking(ResourceObject):
     def __init__(
         self,
-        target_date: Optional[date] = None,
+        target_date: date | None = None,
         /,
         *,
         type: Literal["all", "creating", "voting"] = "all",  # noqa: A002

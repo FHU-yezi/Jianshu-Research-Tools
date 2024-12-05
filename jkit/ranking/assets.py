@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import AsyncGenerator
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from jkit._base import DataObject, ResourceObject
 from jkit._network_request import get_json
@@ -20,12 +22,12 @@ if TYPE_CHECKING:
 
 
 class UserInfoField(DataObject, frozen=True):
-    id: Optional[PositiveInt]
-    slug: Optional[UserSlug]
-    name: Optional[UserName]
-    avatar_url: Optional[UserUploadedUrl]
+    id: PositiveInt | None
+    slug: UserSlug | None
+    name: UserName | None
+    avatar_url: UserUploadedUrl | None
 
-    def to_user_obj(self) -> "User":
+    def to_user_obj(self) -> User:
         from jkit.user import User
 
         if not self.slug:

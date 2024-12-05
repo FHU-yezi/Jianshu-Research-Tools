@@ -3,10 +3,8 @@ name = "jkit"
 version = "3.0.0a16"
 description = "简书非官方 SDK - 创造可能性"
 readme = "README.md"
-license = {file = "LICENSE"}
-authors = [
-  {name = "FHU-yezi", email = "yehaowei20060411@qq.com"},
-]
+license = { file = "LICENSE" }
+authors = [{ name = "FHU-yezi", email = "yehaowei20060411@qq.com" }]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Framework :: AsyncIO",
@@ -19,25 +17,54 @@ classifiers = [
     "Typing :: Typed",
 ]
 requires-python = ">=3.9"
-dependencies = [
-    "httpx[http2]",
-    "msgspec",
-]
+dependencies = ["httpx[http2]", "msgspec"]
 
 [tool.uv]
-dev-dependencies = [
-    "pyright>=1.1.0",
-    "ruff>=0.7.0",
-]
+dev-dependencies = ["pyright>=1.1.0", "ruff>=0.8.0"]
 
 [tool.ruff]
 target-version = "py39"
 lint.select = [
-    "A", "ANN", "ARG", "ASYNC", "B",
-    "BLE", "C4", "E", "F", "I",
-    "ICN", "ISC", "N", "PERF", "PIE",
-    "PT", "Q", "RET", "RSE", "RUF",
-    "S", "SIM", "SLOT", "TCH", "UP",
-    "W"
+    "A",
+    "ANN",
+    "ARG",
+    "ASYNC",
+    "B",
+    "C4",
+    "E",
+    "F",
+    "FA",
+    "FBT",
+    "FURB",
+    "I",
+    "ISC",
+    "N",
+    "PERF",
+    "PIE",
+    "PL",
+    "PT",
+    "PTH",
+    "Q",
+    "RET",
+    "RSE",
+    "RUF",
+    "S",
+    "SIM",
+    "SLF",
+    "T20",
+    "TID",
+    "TRY",
+    "UP",
+    "W",
 ]
-lint.ignore = ["ANN101", "ANN102", "ISC001", "RUF001", "RUF002", "RUF003"]
+lint.ignore = [
+    "ISC001",
+    "PERF203",
+    "PLR2004",
+    "RUF001",
+    "RUF002",
+    "RUF003",
+    "S311",
+    "SLF001",
+    "TRY003",
+]

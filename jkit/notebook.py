@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import AsyncGenerator
-from typing import TYPE_CHECKING, Any, Literal, Optional, TypeVar
+from typing import TYPE_CHECKING, Any, Literal, TypeVar
 
 from httpx import HTTPStatusError
 
@@ -40,7 +42,7 @@ class AuthorInfoField(DataObject, frozen=True):
     name: UserName
     avatar_url: UserUploadedUrl
 
-    def to_user_obj(self) -> "User":
+    def to_user_obj(self) -> User:
         from jkit.user import User
 
         return User.from_slug(self.slug)._as_checked()
@@ -63,7 +65,7 @@ class ArticleAuthorInfoField(DataObject, frozen=True):
     name: UserName
     avatar_url: UserUploadedUrl
 
-    def to_user_obj(self) -> "User":
+    def to_user_obj(self) -> User:
         from jkit.user import User
 
         return User.from_slug(self.slug)._as_checked()
@@ -74,7 +76,7 @@ class NotebookArticleInfo(DataObject, frozen=True):
     slug: ArticleSlug
     title: NonEmptyStr
     description: str
-    image_url: Optional[UserUploadedUrl]
+    image_url: UserUploadedUrl | None
     published_at: NormalizedDatetime
     is_paid: bool
     can_comment: bool
@@ -86,7 +88,7 @@ class NotebookArticleInfo(DataObject, frozen=True):
     tips_count: NonNegativeInt
     earned_fp_amount: NonNegativeFloat
 
-    def to_article_obj(self) -> "Article":
+    def to_article_obj(self) -> Article:
         from jkit.article import Article
 
         return Article.from_slug(self.slug)._as_checked()

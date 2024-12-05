@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from collections.abc import AsyncGenerator
 from enum import Enum
-from typing import Literal, Optional
+from typing import Literal
 
 from jkit._base import DataObject, ResourceObject
 from jkit._network_request import send_post
@@ -25,7 +27,7 @@ class PublisherInfoField(DataObject, frozen=True):
     id: PositiveInt
     name: NonEmptyStr
     hashed_name: NonEmptyStr
-    avatar_url: Optional[NonEmptyStr]
+    avatar_url: NonEmptyStr | None
     credit: NonNegativeInt
 
 

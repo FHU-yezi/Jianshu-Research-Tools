@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 from collections.abc import AsyncGenerator
 from contextlib import suppress
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional, Union
 
 from httpx import HTTPStatusError
 from msgspec import DecodeError
@@ -87,7 +88,7 @@ class Assets(ResourceObject):
         self._credential = credential
 
     async def iter_fp_records(
-        self, *, max_id: Optional[int] = None
+        self, *, max_id: int | None = None
     ) -> AsyncGenerator[AssetsTransactionRecord, None]:
         now_max_id = max_id
 
@@ -120,7 +121,7 @@ class Assets(ResourceObject):
                 )._validate()
 
     async def iter_ftn_records(
-        self, *, max_id: Optional[int] = None
+        self, *, max_id: int | None = None
     ) -> AsyncGenerator[AssetsTransactionRecord, None]:
         now_max_id = max_id
 
@@ -279,7 +280,7 @@ class Assets(ResourceObject):
 
             now_page += 1
 
-    async def fp_to_ftn(self, /, amount: Union[int, float]) -> None:
+    async def fp_to_ftn(self, /, amount: int | float) -> None:
         if amount <= 0:
             raise ValueError("转换的简书钻数量必须大于 0")
 
@@ -305,7 +306,7 @@ class Assets(ResourceObject):
 
             raise e from None
 
-    async def ftn_to_fp(self, /, amount: Union[int, float]) -> None:
+    async def ftn_to_fp(self, /, amount: int | float) -> None:
         if amount <= 0:
             raise ValueError("转换的简书贝数量必须大于 0")
 

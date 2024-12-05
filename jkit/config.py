@@ -1,4 +1,6 @@
-from typing import Literal, Optional, TypeVar
+from __future__ import annotations
+
+from typing import Literal, TypeVar
 
 from httpx import AsyncClient
 from httpx._types import ProxiesTypes, TimeoutTypes
@@ -21,7 +23,7 @@ class _NetworkConfig(ConfigObject):
     protool: Literal["HTTP/1", "HTTP/2"] = "HTTP/2"
 
     # 代理配置，与 HTTPX proxies 选项支持类型相同
-    proxies: Optional[ProxiesTypes] = None
+    proxies: ProxiesTypes | None = None
 
     # 请求超时，与 HTTPX timeout 选项支持类型相同
     timeout: TimeoutTypes = 5

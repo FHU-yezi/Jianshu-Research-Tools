@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import AsyncGenerator
 from enum import Enum
 from re import compile as re_compile
@@ -5,7 +7,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Literal,
-    Optional,
 )
 
 from httpx import HTTPStatusError
@@ -67,7 +68,7 @@ class GenderEnum(Enum):
 
 class MembershipInfoField(DataObject, frozen=True):
     type: MembershipEnum
-    expired_at: Optional[NormalizedDatetime]
+    expired_at: NormalizedDatetime | None
 
 
 class UserInfo(DataObject, frozen=True):
@@ -77,7 +78,7 @@ class UserInfo(DataObject, frozen=True):
     introduction: str
     introduction_updated_at: NormalizedDatetime
     avatar_url: UserUploadedUrl
-    background_image_url: Optional[UserUploadedUrl]
+    background_image_url: UserUploadedUrl | None
     badges: tuple[UserBadge, ...]
     membership_info: MembershipInfoField
     address_by_ip: NonEmptyStr
@@ -95,7 +96,7 @@ class UserCollectionInfo(DataObject, frozen=True):
     name: NonEmptyStr
     image_url: UserUploadedUrl
 
-    def to_collection_obj(self) -> "Collection":
+    def to_collection_obj(self) -> Collection:
         from jkit.collection import Collection
 
         return Collection.from_slug(self.slug)._as_checked()
@@ -105,9 +106,9 @@ class UserNotebookInfo(DataObject, frozen=True):
     id: PositiveInt
     name: NonEmptyStr
     is_serial: bool
-    is_paid: Optional[bool]
+    is_paid: bool | None
 
-    def to_notebook_obj(self) -> "Notebook":
+    def to_notebook_obj(self) -> Notebook:
         from jkit.notebook import Notebook
 
         return Notebook.from_id(self.id)
@@ -119,7 +120,7 @@ class ArticleAuthorInfoField(DataObject, frozen=True):
     name: UserName
     avatar_url: UserUploadedUrl
 
-    def to_user_obj(self) -> "User":
+    def to_user_obj(self) -> User:
         from jkit.user import User
 
         return User.from_slug(self.slug)._as_checked()
@@ -130,7 +131,7 @@ class UserArticleInfo(DataObject, frozen=True):
     slug: ArticleSlug
     title: NonEmptyStr
     description: str
-    image_url: Optional[UserUploadedUrl]
+    image_url: UserUploadedUrl | None
     published_at: NormalizedDatetime
     is_top: bool
     is_paid: bool
@@ -143,7 +144,7 @@ class UserArticleInfo(DataObject, frozen=True):
     tips_count: NonNegativeInt
     earned_fp_amount: NonNegativeFloat
 
-    def to_article_obj(self) -> "Article":
+    def to_article_obj(self) -> Article:
         from jkit.article import Article
 
         return Article.from_slug(self.slug)._as_checked()
@@ -154,9 +155,7 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     _slug_to_url_func = user_slug_to_url
     _url_to_slug_func = user_url_to_slug
 
-    def __init__(
-        self, *, slug: Optional[str] = None, url: Optional[str] = None
-    ) -> None:
+    def __init__(self, *, slug: str | None = None, url: str | None = None) -> None:
         super().__init__()
 
         self._slug = self._check_params(

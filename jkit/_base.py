@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
-from typing import Callable, ClassVar, Optional, TypeVar
+from typing import Callable, ClassVar, TypeVar
 
 from msgspec import Struct, convert, to_builtins
 from msgspec import ValidationError as MsgspecValidationError
@@ -67,13 +69,11 @@ class CheckableMixin(metaclass=ABCMeta):
 
 
 class SlugAndUrlMixin:
-    _slug_check_func: ClassVar[Optional[Callable[[str], bool]]] = None
-    _slug_to_url_func: ClassVar[Optional[Callable[[str], str]]] = None
-    _url_to_slug_func: ClassVar[Optional[Callable[[str], str]]] = None
+    _slug_check_func: ClassVar[Callable[[str], bool] | None] = None
+    _slug_to_url_func: ClassVar[Callable[[str], str] | None] = None
+    _url_to_slug_func: ClassVar[Callable[[str], str] | None] = None
 
-    def __init__(
-        self, *, slug: Optional[str] = None, url: Optional[str] = None
-    ) -> None:
+    def __init__(self, *, slug: str | None = None, url: str | None = None) -> None:
         del slug, url
 
         self._slug = ""
@@ -102,8 +102,8 @@ class SlugAndUrlMixin:
         cls,
         *,
         object_readable_name: str,
-        slug: Optional[str],
-        url: Optional[str],
+        slug: str | None,
+        url: str | None,
     ) -> str:
         # 如果同时提供了 Slug 和 Url
         if slug is not None and url is not None:
@@ -148,7 +148,7 @@ class IdAndUrlMixin(metaclass=ABCMeta):
 
     @classmethod
     @abstractmethod
-    def from_url(cls: type[P3], url: str, /) -> "P3":
+    def from_url(cls: type[P3], url: str, /) -> P3:
         raise NotImplementedError
 
     @property

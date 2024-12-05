@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from collections.abc import AsyncGenerator
 from datetime import date, datetime, timedelta
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from jkit._base import DataObject, ResourceObject
 from jkit._network_request import get_json
@@ -22,14 +24,14 @@ if TYPE_CHECKING:
 
 
 class AuthorInfoField(DataObject, frozen=True):
-    name: Optional[UserName]
-    avatar_url: Optional[UserUploadedUrl]
+    name: UserName | None
+    avatar_url: UserUploadedUrl | None
 
 
 class RecordField(DataObject, frozen=True):
     ranking: PositiveInt
-    title: Optional[NonEmptyStr]
-    slug: Optional[ArticleSlug]
+    title: NonEmptyStr | None
+    slug: ArticleSlug | None
     total_fp_amount: PositiveFloat
     fp_to_author_anount: PositiveFloat
     fp_to_voter_amount: PositiveFloat
@@ -39,7 +41,7 @@ class RecordField(DataObject, frozen=True):
     def is_missing(self) -> bool:
         return not bool(self.slug)
 
-    def to_article_obj(self) -> "Article":
+    def to_article_obj(self) -> Article:
         if not self.slug:
             raise APIUnsupportedError(
                 f"文章 {article_slug_to_url(self.slug)} 不存在或已被删除 / 私密 / 锁定"
@@ -60,7 +62,7 @@ class ArticleEarningRankingData(DataObject, frozen=True):
 
 
 class ArticleEarningRanking(ResourceObject):
-    def __init__(self, target_date: Optional[date] = None, /) -> None:
+    def __init__(self, target_date: date | None = None, /) -> None:
         if not target_date:
             target_date = datetime.now().date() - timedelta(days=1)
 

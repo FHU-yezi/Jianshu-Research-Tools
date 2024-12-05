@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 from collections.abc import AsyncGenerator
 from typing import (
     TYPE_CHECKING,
     Any,
     Literal,
-    Optional,
 )
 
 from httpx import HTTPStatusError
@@ -43,7 +44,7 @@ class OwnerInfoField(DataObject, frozen=True):
     slug: UserSlug
     name: UserName
 
-    def to_user_obj(self) -> "User":
+    def to_user_obj(self) -> User:
         from jkit.user import User
 
         return User.from_slug(self.slug)._as_checked()
@@ -69,7 +70,7 @@ class ArticleAuthorInfoField(DataObject, frozen=True):
     name: UserName
     avatar_url: UserUploadedUrl
 
-    def to_user_obj(self) -> "User":
+    def to_user_obj(self) -> User:
         from jkit.user import User
 
         return User.from_slug(self.slug)._as_checked()
@@ -80,7 +81,7 @@ class CollectionArticleInfo(DataObject, frozen=True):
     slug: ArticleSlug
     title: NonEmptyStr
     description: str
-    image_url: Optional[UserUploadedUrl]
+    image_url: UserUploadedUrl | None
     published_at: NormalizedDatetime
     is_paid: bool
     can_comment: bool
@@ -92,7 +93,7 @@ class CollectionArticleInfo(DataObject, frozen=True):
     tips_count: NonNegativeInt
     earned_fp_amount: NonNegativeFloat
 
-    def to_article_obj(self) -> "Article":
+    def to_article_obj(self) -> Article:
         from jkit.article import Article
 
         return Article.from_slug(self.slug)._as_checked()
@@ -103,9 +104,7 @@ class Collection(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     _slug_to_url_func = collection_slug_to_url
     _url_to_slug_func = collection_url_to_slug
 
-    def __init__(
-        self, *, slug: Optional[str] = None, url: Optional[str] = None
-    ) -> None:
+    def __init__(self, *, slug: str | None = None, url: str | None = None) -> None:
         super().__init__()
 
         self._slug = self._check_params(
