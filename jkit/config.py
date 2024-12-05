@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Literal, TypeVar
 
 from httpx import AsyncClient
-from httpx._types import ProxiesTypes, TimeoutTypes
+from httpx._types import ProxyTypes, TimeoutTypes
 from msgspec import Struct, convert, field, to_builtins
 
 from jkit.msgspec_constraints import NonEmptyStr
@@ -22,8 +22,8 @@ class _NetworkConfig(ConfigObject):
     # 使用的传输协议，HTTP/2 有助于提升性能
     protool: Literal["HTTP/1", "HTTP/2"] = "HTTP/2"
 
-    # 代理配置，与 HTTPX proxies 选项支持类型相同
-    proxies: ProxiesTypes | None = None
+    # 代理配置，与 HTTPX proxy 选项支持类型相同
+    proxy: ProxyTypes | None = None
 
     # 请求超时，与 HTTPX timeout 选项支持类型相同
     timeout: TimeoutTypes = 5
@@ -31,7 +31,7 @@ class _NetworkConfig(ConfigObject):
     def _get_http_client(self) -> AsyncClient:
         return AsyncClient(
             http2=self.protool == "HTTP/2",
-            proxies=self.proxies,
+            proxy=self.proxy,
             timeout=self.timeout,
         )
 
