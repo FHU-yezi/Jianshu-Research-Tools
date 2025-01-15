@@ -17,6 +17,7 @@ from jkit._normalization import (
     normalize_percentage,
 )
 from jkit.config import CONFIG
+from jkit.constants import _ASSETS_ACTION_FAILED_STATUS_CODE
 from jkit.credential import JianshuCredential
 from jkit.exceptions import BalanceNotEnoughError, WeeklyConvertLimitExceededError
 from jkit.msgspec_constraints import (
@@ -294,7 +295,7 @@ class Assets(ResourceObject):
                     cookies=self._credential.cookies,
                 )
         except HTTPStatusError as e:
-            if e.response.status_code == 422:  # noqa: PLR2004
+            if e.response.status_code == _ASSETS_ACTION_FAILED_STATUS_CODE:
                 data = JSON_DECODER.decode(e.response.content)
                 if data["error"][0]["code"] == 18002:  # noqa: PLR2004
                     raise BalanceNotEnoughError("简书钻余额不足") from None
@@ -320,7 +321,7 @@ class Assets(ResourceObject):
                     cookies=self._credential.cookies,
                 )
         except HTTPStatusError as e:
-            if e.response.status_code == 422:  # noqa: PLR2004
+            if e.response.status_code == _ASSETS_ACTION_FAILED_STATUS_CODE:
                 data = JSON_DECODER.decode(e.response.content)
                 if data["error"][0]["code"] == 18002:  # noqa: PLR2004
                     raise BalanceNotEnoughError("简书贝余额不足") from None

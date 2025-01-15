@@ -1,12 +1,12 @@
 from jkit.constants import (
+    _NOTEBOOK_ID_MAX,
+    _NOTEBOOK_ID_MIN,
     ARTICLE_SLUG_REGEX,
     ARTICLE_URL_REGEX,
     COLLECTION_SLUG_REGEX,
     COLLECTION_URL_REGEX,
     ISLAND_SLUG_REGEX,
     ISLAND_URL_REGEX,
-    NOTEBOOK_ID_MAX,
-    NOTEBOOK_ID_MIN,
     NOTEBOOK_URL_REGEX,
     USER_SLUG_REGEX,
     USER_URL_REGEX,
@@ -42,7 +42,7 @@ def is_article_slug(x: str, /) -> bool:
 
 
 def is_notebook_id(x: int, /) -> bool:
-    return NOTEBOOK_ID_MIN <= x <= NOTEBOOK_ID_MAX
+    return _NOTEBOOK_ID_MIN <= x <= _NOTEBOOK_ID_MAX
 
 
 def is_collection_slug(x: str, /) -> bool:

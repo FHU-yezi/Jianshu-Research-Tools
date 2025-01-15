@@ -18,6 +18,7 @@ from jkit._base import (
 from jkit._network_request import get_json
 from jkit._normalization import normalize_assets_amount, normalize_datetime
 from jkit.config import CONFIG
+from jkit.constants import _RESOURCE_UNAVAILABLE_STATUS_CODE
 from jkit.exceptions import ResourceUnavailableError
 from jkit.identifier_check import is_collection_slug
 from jkit.identifier_convert import collection_slug_to_url, collection_url_to_slug
@@ -124,7 +125,7 @@ class Collection(ResourceObject, CheckableMixin, SlugAndUrlMixin):
             )
             self._checked = True
         except HTTPStatusError as e:
-            if e.response.status_code == 404:  # noqa: PLR2004
+            if e.response.status_code == _RESOURCE_UNAVAILABLE_STATUS_CODE:
                 raise ResourceUnavailableError(
                     f"专题 {self.url} 不存在或已被删除"
                 ) from None

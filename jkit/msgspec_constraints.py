@@ -4,6 +4,8 @@ from typing import Annotated
 from msgspec import Meta
 
 from jkit.constants import (
+    _NOTEBOOK_ID_MAX,
+    _NOTEBOOK_ID_MIN,
     ARTICLE_SLUG_REGEX,
     ARTICLE_URL_REGEX,
     COLLECTION_SLUG_REGEX,
@@ -11,8 +13,6 @@ from jkit.constants import (
     ISLAND_SLUG_REGEX,
     ISLAND_URL_REGEX,
     JIANSHU_URL_REGEX,
-    NOTEBOOK_ID_MAX,
-    NOTEBOOK_ID_MIN,
     NOTEBOOK_URL_REGEX,
     USER_NAME_REGEX,
     USER_SLUG_REGEX,
@@ -40,6 +40,6 @@ IslandUrl = Annotated[str, Meta(pattern=ISLAND_URL_REGEX.pattern)]
 
 UserSlug = Annotated[str, Meta(pattern=USER_SLUG_REGEX.pattern)]
 ArticleSlug = Annotated[str, Meta(pattern=ARTICLE_SLUG_REGEX.pattern)]
-NotebookId = Annotated[int, Meta(ge=NOTEBOOK_ID_MIN, le=NOTEBOOK_ID_MAX)]
+NotebookId = Annotated[int, Meta(ge=_NOTEBOOK_ID_MIN, le=_NOTEBOOK_ID_MAX)]
 CollectionSlug = Annotated[str, Meta(pattern=COLLECTION_SLUG_REGEX.pattern)]
 IslandSlug = Annotated[str, Meta(pattern=ISLAND_SLUG_REGEX.pattern)]

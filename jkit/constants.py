@@ -1,8 +1,5 @@
 from re import compile as regex_compile
 
-HTML_TAG_REGEX = regex_compile("<.*?>")
-BLANK_LINES_REGEX = regex_compile("\n{2,}")
-
 JIANSHU_URL_REGEX = regex_compile(r"^https://www\.jianshu\.com/[a-zA-Z0-9/]*/?$")
 USER_UPLOADED_URL_REGEX = regex_compile(r"^https?:\/\/.*/?$")
 USER_URL_REGEX = regex_compile(
@@ -22,7 +19,13 @@ USER_SLUG_REGEX = ARTICLE_SLUG_REGEX = COLLECTION_SLUG_REGEX = regex_compile(
 )
 ISLAND_SLUG_REGEX = regex_compile(r"^[a-z0-9]{16}$")
 
-NOTEBOOK_ID_MIN = 100000
-NOTEBOOK_ID_MAX = 99999999
-
 USER_NAME_REGEX = regex_compile(r"^[\w]{,15}$")
+
+_HTML_TAG_REGEX = regex_compile("<.*?>")
+_BLANK_LINES_REGEX = regex_compile("\n{2,}")
+
+_NOTEBOOK_ID_MIN = 100000
+_NOTEBOOK_ID_MAX = 99999999
+
+_RESOURCE_UNAVAILABLE_STATUS_CODE = 404
+_ASSETS_ACTION_FAILED_STATUS_CODE = 422

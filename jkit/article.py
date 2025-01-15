@@ -7,7 +7,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Literal,
-    Optional,
 )
 
 from httpx import HTTPStatusError
@@ -25,7 +24,11 @@ from jkit._normalization import (
     normalize_percentage,
 )
 from jkit.config import CONFIG
-from jkit.constants import BLANK_LINES_REGEX, HTML_TAG_REGEX
+from jkit.constants import (
+    _BLANK_LINES_REGEX,
+    _HTML_TAG_REGEX,
+    _RESOURCE_UNAVAILABLE_STATUS_CODE,
+)
 from jkit.exceptions import ResourceUnavailableError
 from jkit.identifier_check import is_article_slug
 from jkit.identifier_convert import article_slug_to_url, article_url_to_slug
@@ -105,8 +108,8 @@ class ArticleInfo(DataObject, frozen=True):
 
     @property
     def text_content(self) -> str:
-        result = HTML_TAG_REGEX.sub("", self.html_content)
-        return BLANK_LINES_REGEX.sub("\n", result)
+        result = _HTML_TAG_REGEX.sub("", self.html_content)
+        return _BLANK_LINES_REGEX.sub("\n", result)
 
 
 class ArticleAudioInfo(DataObject, frozen=True):
@@ -211,7 +214,7 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
         self,
         *,
         slug: str | None = None,
-        url: Optional[str] = None,  # noqa: UP007
+        url: str | None = None,
     ) -> None:
         super().__init__()
 
@@ -232,7 +235,7 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
             )
             self._checked = True
         except HTTPStatusError as e:
-            if e.response.status_code == 404:  # noqa: PLR2004
+            if e.response.status_code == _RESOURCE_UNAVAILABLE_STATUS_CODE:
                 raise ResourceUnavailableError(
                     f"文章 {self.url} 不存在或已被删除 / 私密 / 锁定"
                 ) from None
