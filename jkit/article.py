@@ -232,7 +232,7 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
             )
             self._checked = True
         except HTTPStatusError as e:
-            if e.response.status_code == 404:
+            if e.response.status_code == 404:  # noqa: PLR2004
                 raise ResourceUnavailableError(
                     f"文章 {self.url} 不存在或已被删除 / 私密 / 锁定"
                 ) from None

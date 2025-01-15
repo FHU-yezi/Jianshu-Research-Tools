@@ -50,7 +50,7 @@ class UserEarningRanking(ResourceObject):
         target_date: date | None = None,
         /,
         *,
-        type: Literal["all", "creating", "voting"] = "all",  # noqa: A002
+        type: Literal["all", "creating", "voting"] = "all",
     ) -> None:
         if not target_date:
             target_date = datetime.now().date() - timedelta(days=1)

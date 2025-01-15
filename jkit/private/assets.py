@@ -107,7 +107,7 @@ class Assets(ResourceObject):
             now_max_id = data["transactions"][-1]["id"]
 
             for item in data["transactions"]:
-                is_out = item["io_type"] == 2
+                is_out = item["io_type"] == 2  # noqa: PLR2004
                 yield AssetsTransactionRecord(
                     id=item["id"],
                     time=normalize_datetime(item["time"]),
@@ -140,7 +140,7 @@ class Assets(ResourceObject):
             now_max_id = data["transactions"][-1]["id"]
 
             for item in data["transactions"]:
-                is_out = item["io_type"] == 2
+                is_out = item["io_type"] == 2  # noqa: PLR2004
                 yield AssetsTransactionRecord(
                     id=item["id"],
                     time=normalize_datetime(item["time"]),
@@ -294,12 +294,12 @@ class Assets(ResourceObject):
                     cookies=self._credential.cookies,
                 )
         except HTTPStatusError as e:
-            if e.response.status_code == 422:
+            if e.response.status_code == 422:  # noqa: PLR2004
                 data = JSON_DECODER.decode(e.response.content)
-                if data["error"][0]["code"] == 18002:
+                if data["error"][0]["code"] == 18002:  # noqa: PLR2004
                     raise BalanceNotEnoughError("简书钻余额不足") from None
 
-                if data["error"][0]["code"] == 18005:
+                if data["error"][0]["code"] == 18005:  # noqa: PLR2004
                     raise WeeklyConvertLimitExceededError(
                         "超出每周转换额度限制"
                     ) from None
@@ -320,12 +320,12 @@ class Assets(ResourceObject):
                     cookies=self._credential.cookies,
                 )
         except HTTPStatusError as e:
-            if e.response.status_code == 422:
+            if e.response.status_code == 422:  # noqa: PLR2004
                 data = JSON_DECODER.decode(e.response.content)
-                if data["error"][0]["code"] == 18002:
+                if data["error"][0]["code"] == 18002:  # noqa: PLR2004
                     raise BalanceNotEnoughError("简书贝余额不足") from None
 
-                if data["error"][0]["code"] == 18005:
+                if data["error"][0]["code"] == 18005:  # noqa: PLR2004
                     raise WeeklyConvertLimitExceededError(
                         "超出每周转换额度限制"
                     ) from None

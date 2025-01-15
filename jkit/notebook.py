@@ -95,7 +95,7 @@ class NotebookArticleInfo(DataObject, frozen=True):
 
 
 class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
-    def __init__(self, *, id: int) -> None:  # noqa: A002
+    def __init__(self, *, id: int) -> None:
         super().__init__()
         self._checked = False
 
@@ -104,7 +104,7 @@ class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
         self._id = id
 
     @classmethod
-    def from_id(cls: type[T], id: int, /) -> T:  # noqa: A002
+    def from_id(cls: type[T], id: int, /) -> T:
         return cls(id=id)
 
     @property
@@ -125,7 +125,7 @@ class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
             )
             self._checked = True
         except HTTPStatusError as e:
-            if e.response.status_code == 404:
+            if e.response.status_code == 404:  # noqa: PLR2004
                 raise ResourceUnavailableError(
                     f"文集 {self.url} 不存在或已被删除"
                 ) from None

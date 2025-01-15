@@ -51,7 +51,7 @@ class FTNMacket(ResourceObject):
     async def iter_orders(
         self,
         *,
-        type: Literal["buy", "sell"],  # noqa: A002
+        type: Literal["buy", "sell"],
         start_page: int = 1,
     ) -> AsyncGenerator[FTNMacketOrderRecord, None]:
         now_page = start_page

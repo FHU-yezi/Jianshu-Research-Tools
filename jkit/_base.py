@@ -30,7 +30,7 @@ class DataObject(Struct, frozen=True, eq=True, kw_only=True):
         for field in self.__struct_fields__:
             value = self.__getattribute__(field)
 
-            if isinstance(value, str) and len(value) >= 100:
+            if isinstance(value, str) and len(value) >= 100:  # noqa: PLR2004
                 formatted_value = value[:100] + "[truncated...]"
             else:
                 formatted_value = value.__repr__()
@@ -143,7 +143,7 @@ class SlugAndUrlMixin:
 class IdAndUrlMixin(metaclass=ABCMeta):
     @classmethod
     @abstractmethod
-    def from_id(cls: type[P3], id: int, /) -> P3:  # noqa: A002
+    def from_id(cls: type[P3], id: int, /) -> P3:
         raise NotImplementedError
 
     @classmethod

@@ -174,7 +174,7 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
                 path=f"/asimov/users/slug/{self.slug}",
             )
         except HTTPStatusError as e:
-            if e.response.status_code == 404:
+            if e.response.status_code == 404:  # noqa: PLR2004
                 raise ResourceUnavailableError(
                     f"用户 {self.url} 不存在或已注销 / 被封禁"
                 ) from None
