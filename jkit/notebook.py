@@ -159,7 +159,7 @@ class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
         self,
         *,
         start_page: int = 1,
-        order_by: Literal["add_time", "last_comment_time"] = "add_time",
+        order_by: Literal["ADD_TIME", "LAST_COMMENT_TIME"] = "ADD_TIME",
         page_size: int = 20,
     ) -> AsyncGenerator[NotebookArticleInfo, None]:
         await self._auto_check()
@@ -173,8 +173,8 @@ class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
                     "page": now_page,
                     "count": page_size,
                     "order_by": {
-                        "add_time": "added_at",
-                        "last_comment_time": "commented_at",
+                        "ADD_TIME": "added_at",
+                        "LAST_COMMENT_TIME": "commented_at",
                     }[order_by],
                 },
             )  # type: ignore

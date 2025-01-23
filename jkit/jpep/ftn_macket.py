@@ -51,7 +51,7 @@ class FTNMacket(ResourceObject):
     async def iter_orders(
         self,
         *,
-        type: Literal["buy", "sell"],
+        type: Literal["BUY", "SELL"],
         start_page: int = 1,
     ) -> AsyncGenerator[FTNMacketOrderRecord, None]:
         now_page = start_page
@@ -62,12 +62,12 @@ class FTNMacket(ResourceObject):
                 params={"page": now_page},
                 json={
                     "filter": [
-                        {"trade": 1 if type == "buy" else 0},
+                        {"trade": 1 if type == "BUY" else 0},
                         {"status": 1},
                         {"finish": 0},
                         {"tradable": {">": "0"}},
                     ],
-                    "sort": "price,pub_date" if type == "buy" else "-price,pub_date",
+                    "sort": "price,pub_date" if type == "BUY" else "-price,pub_date",
                     "bind": [
                         {
                             "member.user": {

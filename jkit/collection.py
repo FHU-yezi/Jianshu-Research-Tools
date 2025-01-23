@@ -162,7 +162,7 @@ class Collection(ResourceObject, CheckableMixin, SlugAndUrlMixin):
         self,
         *,
         start_page: int = 1,
-        order_by: Literal["add_time", "last_comment_time", "popularity"] = "add_time",
+        order_by: Literal["ADD_TIME", "LAST_COMMENT_TIME", "POPULARITY"] = "ADD_TIME",
         page_size: int = 20,
     ) -> AsyncGenerator[CollectionArticleInfo, None]:
         await self._auto_check()
@@ -176,9 +176,9 @@ class Collection(ResourceObject, CheckableMixin, SlugAndUrlMixin):
                     "page": now_page,
                     "count": page_size,
                     "ordered_by": {
-                        "add_time": "time",
-                        "last_comment_time": "comment_time",
-                        "popularity": "hot",
+                        "ADD_TIME": "time",
+                        "LAST_COMMENT_TIME": "comment_time",
+                        "POPULARITY": "hot",
                     }[order_by],
                 },
             )  # type: ignore

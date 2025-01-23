@@ -385,7 +385,7 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
         self,
         *,
         start_page: int = 1,
-        direction: Literal["asc", "desc"] = "desc",
+        direction: Literal["ASC", "DESC"] = "DESC",
         author_only: bool = False,
         page_size: int = 10,
     ) -> AsyncGenerator[ArticleCommentInfo, None]:
@@ -398,7 +398,7 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
                 path=f"/shakespeare/notes/{await self.id}/comments",
                 params={
                     "page": now_page,
-                    "order_by": direction,
+                    "order_by": direction.lower(),
                     "author_only": author_only,
                     "count": page_size,
                 },

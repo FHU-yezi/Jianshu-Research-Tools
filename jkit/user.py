@@ -359,8 +359,8 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
         *,
         start_page: int = 1,
         order_by: Literal[
-            "published_at", "last_comment_time", "popularity"
-        ] = "published_at",
+            "PUBLISHED_AT", "LAST_COMMENT_TIME", "POPULARITY"
+        ] = "PUBLISHED_AT",
         page_size: int = 10,
     ) -> AsyncGenerator[UserArticleInfo, None]:
         await self._auto_check()
@@ -374,9 +374,9 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
                     "page": now_page,
                     "count": page_size,
                     "order_by": {
-                        "published_at": "shared_at",
-                        "last_comment_time": "commented_at",
-                        "popularity": "top",
+                        "PUBLISHED_AT": "shared_at",
+                        "LAST_COMMENT_TIME": "commented_at",
+                        "POPULARITY": "top",
                     }[order_by],
                 },
             )  # type: ignore
