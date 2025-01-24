@@ -40,17 +40,17 @@ class UserInfoField(DataObject, frozen=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class AssetsRankingRecord(DataObject, frozen=True):
+class UserAssetsRankingRecord(DataObject, frozen=True):
     ranking: PositiveInt
     assets_amount: NonNegativeFloat
     user_info: UserInfoField
 
 
-class AssetsRanking(ResourceObject):
+class UserAssetsRanking(ResourceObject):
     def __init__(self, *, start_id: int = 1) -> None:
         self._start_id = start_id
 
-    async def __aiter__(self) -> AsyncGenerator[AssetsRankingRecord, None]:
+    async def __aiter__(self) -> AsyncGenerator[UserAssetsRankingRecord, None]:
         now_id = self._start_id
         while True:
             data = await get_json(
@@ -62,7 +62,7 @@ class AssetsRanking(ResourceObject):
                 return
 
             for item in data["rankings"]:
-                yield AssetsRankingRecord(
+                yield UserAssetsRankingRecord(
                     ranking=item["ranking"],
                     assets_amount=normalize_assets_amount(item["amount"]),
                     user_info=UserInfoField(
