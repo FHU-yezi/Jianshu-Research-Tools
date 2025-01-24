@@ -21,7 +21,7 @@ from jkit._network_request import get_html, get_json
 from jkit._normalization import normalize_assets_amount, normalize_datetime
 from jkit.config import CONFIG
 from jkit.constants import _RESOURCE_UNAVAILABLE_STATUS_CODE
-from jkit.exceptions import APIUnsupportedError, ResourceUnavailableError
+from jkit.exceptions import ResourceUnavailableError
 from jkit.identifier_check import is_user_slug
 from jkit.identifier_convert import user_slug_to_url, user_url_to_slug
 from jkit.msgspec_constraints import (
@@ -243,26 +243,34 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
         )._validate()
 
     @property
-    async def fp_amount(self) -> float:
-        return (await self.info).fp_amount
+    async def assets_info(self) -> tuple[float, float | None, float | None]:
+        fp_amount = (await self.info).fp_amount
 
-    @property
-    async def ftn_amount(self) -> float:
-        return round((await self.assets_amount) - (await self.info).fp_amount, 3)
-
-    @property
-    async def assets_amount(self) -> float:
-        await self._auto_check()
-
-        data = await get_html(endpoint=CONFIG.endpoints.jianshu, path=f"/u/{self.slug}")
-
+        assets_amount_data = await get_html(
+            endpoint=CONFIG.endpoints.jianshu, path=f"/u/{self.slug}"
+        )
         try:
-            assets_amount: str = ASSETS_AMOUNT_REGEX.findall(data)[0]
-            return float(assets_amount.replace(".", "").replace("w", "000"))
+            assets_amount = float(
+                ASSETS_AMOUNT_REGEX.findall(assets_amount_data)[0]
+                .replace(".", "")
+                .replace("w", "000")
+            )
         except IndexError:
-            raise APIUnsupportedError(
-                "受 API 限制，无法获取此用户的资产量信息"
-            ) from None
+            # 受 API 限制，无法获取此用户的总资产信息
+            # 此时简书贝也无法计算
+            return (fp_amount, None, None)
+        else:
+            ftn_amount = round(assets_amount - fp_amount, 3)
+            # 由于总资产信息存在误差（实际值四舍五入，如 10200 -> 10000）
+            # 当简书贝数量较少时,如 10100 简书钻 200 简书贝
+            # 总资产误差导致数值为 10000，计算结果为 -100 简书贝
+            # 此时将总资产增加 500，使计算的简书贝数量为 400
+            # 可降低平均误差，并防止简书贝数值为负
+            if ftn_amount < 0:
+                assets_amount += 500
+                ftn_amount = round(assets_amount - fp_amount, 3)
+
+            return (fp_amount, ftn_amount, assets_amount)
 
     async def iter_owned_collections(
         self, *, start_page: int = 1, page_size: int = 10
