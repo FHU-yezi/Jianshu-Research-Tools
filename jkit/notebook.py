@@ -97,7 +97,6 @@ class NotebookArticleInfo(DataObject, frozen=True):
 class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
     def __init__(self, *, id: int) -> None:
         super().__init__()
-        self._checked = False
 
         if not is_notebook_id(id):
             raise ValueError(f"文集 ID 无效：{id}")
@@ -116,9 +115,6 @@ class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
         return notebook_id_to_url(self._id)
 
     async def check(self) -> None:
-        if self._checked:
-            return
-
         try:
             await send_request(
                 datasource="JIANSHU",
@@ -126,7 +122,6 @@ class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
                 path=f"/asimov/nb/{self.id}",
                 response_type="JSON",
             )
-            self._checked = True
         except HTTPStatusError as e:
             if e.response.status_code == _RESOURCE_UNAVAILABLE_STATUS_CODE:
                 raise ResourceUnavailableError(
@@ -137,7 +132,7 @@ class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
 
     @property
     async def info(self) -> NotebookInfo:
-        await self._auto_check()
+        await self._require_check()
 
         data = await send_request(
             datasource="JIANSHU",
@@ -167,7 +162,7 @@ class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
         order_by: Literal["ADD_TIME", "LAST_COMMENT_TIME"] = "ADD_TIME",
         page_size: int = 20,
     ) -> AsyncGenerator[NotebookArticleInfo, None]:
-        await self._auto_check()
+        await self._require_check()
 
         now_page = start_page
         while True:

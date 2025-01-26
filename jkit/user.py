@@ -164,9 +164,6 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
         )
 
     async def check(self) -> None:
-        if self._checked:
-            return
-
         try:
             await send_request(
                 datasource="JIANSHU",
@@ -188,7 +185,7 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
 
     @property
     async def info(self) -> UserInfo:
-        await self._auto_check()
+        await self._require_check()
 
         data = await send_request(
             datasource="JIANSHU",
@@ -280,7 +277,7 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     async def iter_owned_collections(
         self, *, start_page: int = 1, page_size: int = 10
     ) -> AsyncGenerator[UserCollectionInfo, None]:
-        await self._auto_check()
+        await self._require_check()
 
         now_page = start_page
         while True:
@@ -312,7 +309,7 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     async def iter_managed_collections(
         self, *, start_page: int = 1, page_size: int = 10
     ) -> AsyncGenerator[UserCollectionInfo, None]:
-        await self._auto_check()
+        await self._require_check()
 
         now_page = start_page
         while True:
@@ -344,7 +341,7 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     async def iter_notebooks(
         self, *, start_page: int = 1, page_size: int = 10
     ) -> AsyncGenerator[UserNotebookInfo, None]:
-        await self._auto_check()
+        await self._require_check()
 
         now_page = start_page
         while True:
@@ -382,7 +379,7 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
         ] = "PUBLISHED_AT",
         page_size: int = 10,
     ) -> AsyncGenerator[UserArticleInfo, None]:
-        await self._auto_check()
+        await self._require_check()
 
         now_page = start_page
         while True:

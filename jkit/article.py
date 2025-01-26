@@ -223,9 +223,6 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
         )
 
     async def check(self) -> None:
-        if self._checked:
-            return
-
         try:
             await send_request(
                 datasource="JIANSHU",
@@ -233,7 +230,6 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
                 path=f"/asimov/p/{self.slug}",
                 response_type="JSON",
             )
-            self._checked = True
         except HTTPStatusError as e:
             if e.response.status_code == _RESOURCE_UNAVAILABLE_STATUS_CODE:
                 raise ResourceUnavailableError(
@@ -248,7 +244,7 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
 
     @property
     async def info(self) -> ArticleInfo:
-        await self._auto_check()
+        await self._require_check()
 
         data = await send_request(
             datasource="JIANSHU",
@@ -313,7 +309,7 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
 
     @property
     async def views_count(self) -> int:
-        await self._auto_check()
+        await self._require_check()
 
         data = await send_request(
             datasource="JIANSHU",
@@ -326,7 +322,7 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
 
     @property
     async def audio_info(self) -> ArticleAudioInfo | None:
-        await self._auto_check()
+        await self._require_check()
 
         data = await send_request(
             datasource="JIANSHU",
@@ -349,7 +345,7 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
 
     @property
     async def belong_to_notebook(self) -> ArticleBelongToNotebookInfo:
-        await self._auto_check()
+        await self._require_check()
 
         data = await send_request(
             datasource="JIANSHU",
@@ -366,7 +362,7 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     async def iter_included_collections(
         self, *, start_page: int = 1, page_size: int = 10
     ) -> AsyncGenerator[ArticleIncludedCollectionInfo, None]:
-        await self._auto_check()
+        await self._require_check()
 
         now_page = start_page
         while True:
@@ -399,7 +395,7 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
         author_only: bool = False,
         page_size: int = 10,
     ) -> AsyncGenerator[ArticleCommentInfo, None]:
-        await self._auto_check()
+        await self._require_check()
 
         now_page = start_page
         while True:
@@ -462,7 +458,7 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
         *,
         count: int = 10,
     ) -> AsyncGenerator[ArticleFeaturedCommentInfo, None]:
-        await self._auto_check()
+        await self._require_check()
 
         data = await send_request(
             datasource="JIANSHU",

@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 from jkit._base import DataObject, ResourceObject
 from jkit._network import send_request
 from jkit._normalization import normalize_assets_amount
-from jkit.config import CONFIG
 from jkit.exceptions import ResourceUnavailableError
 from jkit.identifier_convert import user_slug_to_url
 from jkit.msgspec_constraints import (

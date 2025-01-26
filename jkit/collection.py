@@ -113,9 +113,6 @@ class Collection(ResourceObject, CheckableMixin, SlugAndUrlMixin):
         )
 
     async def check(self) -> None:
-        if self._checked:
-            return
-
         try:
             await send_request(
                 datasource="JIANSHU",
@@ -123,7 +120,6 @@ class Collection(ResourceObject, CheckableMixin, SlugAndUrlMixin):
                 path=f"/asimov/collections/slug/{self.slug}",
                 response_type="JSON",
             )
-            self._checked = True
         except HTTPStatusError as e:
             if e.response.status_code == _RESOURCE_UNAVAILABLE_STATUS_CODE:
                 raise ResourceUnavailableError(
@@ -134,7 +130,7 @@ class Collection(ResourceObject, CheckableMixin, SlugAndUrlMixin):
 
     @property
     async def info(self) -> CollectionInfo:
-        await self._auto_check()
+        await self._require_check()
 
         data = await send_request(
             datasource="JIANSHU",
@@ -167,7 +163,7 @@ class Collection(ResourceObject, CheckableMixin, SlugAndUrlMixin):
         order_by: Literal["ADD_TIME", "LAST_COMMENT_TIME", "POPULARITY"] = "ADD_TIME",
         page_size: int = 20,
     ) -> AsyncGenerator[CollectionArticleInfo, None]:
-        await self._auto_check()
+        await self._require_check()
 
         now_page = start_page
         while True:

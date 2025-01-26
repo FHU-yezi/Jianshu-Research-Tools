@@ -54,15 +54,15 @@ class CheckableMixin(metaclass=ABCMeta):
     async def check(self) -> None:
         raise NotImplementedError
 
-    async def _auto_check(self) -> None:
-        if not CONFIG.resource_check.auto_check:
+    async def _require_check(self) -> None:
+        if self._checked or not CONFIG.resource_check.auto_check:
             return
 
-        if not self._checked:
-            await self.check()
+        await self.check()
+        self._checked = True
 
     def _as_checked(self: P1) -> P1:
-        if CONFIG.resource_check.force_check_safe_data:
+        if not CONFIG.resource_check.force_check_safe_data:
             self._checked = True
 
         return self
