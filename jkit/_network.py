@@ -6,14 +6,16 @@ from httpx import AsyncClient
 from msgspec.json import Decoder as JsonDecoder
 from msgspec.json import Encoder as JsonEncoder
 
-from jkit.config import CONFIG
+from jkit.config import CONFIG, _DatasourceNameType
+from jkit.constants import _RATELIMIT_STATUS_CODE
+from jkit.exceptions import RatelimitError
+
+HttpMethodType = Literal["GET", "POST", "PUT", "PATCH", "DELETE"]
 
 JSON_ENCODER = JsonEncoder()
 JSON_DECODER = JsonDecoder()
 
-DatasourceType = Literal["JIANSHU", "JPEP"]
-
-DATASOURCE_CLIENTS: dict[DatasourceType, AsyncClient] = {
+DATASOURCE_CLIENTS: dict[_DatasourceNameType, AsyncClient] = {
     "JIANSHU": CONFIG.datasources.jianshu._get_httpx_client(),
     "JPEP": CONFIG.datasources.jpep._get_httpx_client(),
 }
@@ -22,8 +24,8 @@ DATASOURCE_CLIENTS: dict[DatasourceType, AsyncClient] = {
 @overload
 async def send_request(
     *,
-    datasource: Literal["JIANSHU", "JPEP"],
-    method: Literal["GET", "POST", "PUT", "PATCH", "DELETE"],
+    datasource: _DatasourceNameType,
+    method: HttpMethodType,
     path: str,
     params: dict[str, Any] | None = None,
     body: dict[str, Any] | None = None,
@@ -35,8 +37,8 @@ async def send_request(
 @overload
 async def send_request(
     *,
-    datasource: Literal["JIANSHU", "JPEP"],
-    method: Literal["GET", "POST", "PUT", "PATCH", "DELETE"],
+    datasource: _DatasourceNameType,
+    method: HttpMethodType,
     path: str,
     params: dict[str, Any] | None = None,
     body: dict[str, Any] | None = None,
@@ -48,8 +50,8 @@ async def send_request(
 @overload
 async def send_request(
     *,
-    datasource: Literal["JIANSHU", "JPEP"],
-    method: Literal["GET", "POST", "PUT", "PATCH", "DELETE"],
+    datasource: _DatasourceNameType,
+    method: HttpMethodType,
     path: str,
     params: dict[str, Any] | None = None,
     body: dict[str, Any] | None = None,
@@ -60,8 +62,8 @@ async def send_request(
 
 async def send_request(  # noqa: PLR0913
     *,
-    datasource: Literal["JIANSHU", "JPEP"],
-    method: Literal["GET", "POST", "PUT", "PATCH", "DELETE"],
+    datasource: _DatasourceNameType,
+    method: HttpMethodType,
     path: str,
     params: dict[str, Any] | None = None,
     body: dict[str, Any] | None = None,
@@ -81,9 +83,10 @@ async def send_request(  # noqa: PLR0913
         cookies=cookies,
     )
 
-    response.raise_for_status()
+    if datasource == "JIANSHU" and response.status_code == _RATELIMIT_STATUS_CODE:
+        raise RatelimitError
 
-    # TODO: JIANSHU 数据源 HTTP 502 -> RateLimitError
+    response.raise_for_status()
 
     if response_type == "HTML":
         return response.text

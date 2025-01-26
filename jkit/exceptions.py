@@ -2,6 +2,10 @@ class JKitError(Exception):
     pass
 
 
+class RatelimitError(JKitError):
+    pass
+
+
 class ValidationError(Exception):
     pass
 

@@ -9,6 +9,8 @@ from msgspec import Struct, convert, field, to_builtins
 from jkit import __version__
 from jkit.msgspec_constraints import NonEmptyStr
 
+_DatasourceNameType = Literal["JIANSHU", "JPEP"]
+
 T = TypeVar("T", bound="_ConfigObject")
 
 
@@ -19,7 +21,7 @@ class _ConfigObject(Struct, eq=False, kw_only=True, gc=False):
 
 class _DatasourceConfig(_ConfigObject):
     # 数据源名称，不应被修改
-    _name: str
+    _name: _DatasourceNameType
 
     # 数据源 Endpoint（结尾不包含 / 字符）
     endpoint: NonEmptyStr
@@ -50,7 +52,7 @@ class _DatasourceConfig(_ConfigObject):
 
         from jkit._network import DATASOURCE_CLIENTS
 
-        DATASOURCE_CLIENTS[self._name] = self._get_httpx_client()  # type: ignore
+        DATASOURCE_CLIENTS[self._name] = self._get_httpx_client()
 
 
 class _DatasourcesList(_ConfigObject):
