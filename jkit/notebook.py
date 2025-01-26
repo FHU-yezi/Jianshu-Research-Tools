@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
-from typing import TYPE_CHECKING, Any, Literal, TypeVar
+from typing import TYPE_CHECKING, Literal, TypeVar
 
 from httpx import HTTPStatusError
 
@@ -11,9 +11,8 @@ from jkit._base import (
     IdAndUrlMixin,
     ResourceObject,
 )
-from jkit._network_request import get_json
+from jkit._network import send_request
 from jkit._normalization import normalize_assets_amount, normalize_datetime
-from jkit.config import CONFIG
 from jkit.constants import _RESOURCE_UNAVAILABLE_STATUS_CODE
 from jkit.exceptions import ResourceUnavailableError
 from jkit.identifier_check import is_notebook_id
@@ -121,8 +120,11 @@ class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
             return
 
         try:
-            await get_json(
-                endpoint=CONFIG.endpoints.jianshu, path=f"/asimov/nb/{self.id}"
+            await send_request(
+                datasource="JIANSHU",
+                method="GET",
+                path=f"/asimov/nb/{self.id}",
+                response_type="JSON",
             )
             self._checked = True
         except HTTPStatusError as e:
@@ -137,8 +139,11 @@ class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
     async def info(self) -> NotebookInfo:
         await self._auto_check()
 
-        data = await get_json(
-            endpoint=CONFIG.endpoints.jianshu, path=f"/asimov/nb/{self.id}"
+        data = await send_request(
+            datasource="JIANSHU",
+            method="GET",
+            path=f"/asimov/nb/{self.id}",
+            response_type="JSON",
         )
 
         return NotebookInfo(
@@ -166,10 +171,11 @@ class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
 
         now_page = start_page
         while True:
-            data: list[dict[str, Any]] = await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            data = await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path=f"/asimov/notebooks/{self.id}/public_notes",
-                params={
+                body={
                     "page": now_page,
                     "count": page_size,
                     "order_by": {
@@ -177,7 +183,8 @@ class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
                         "LAST_COMMENT_TIME": "commented_at",
                     }[order_by],
                 },
-            )  # type: ignore
+                response_type="JSON_LIST",
+            )
 
             if not data:
                 return

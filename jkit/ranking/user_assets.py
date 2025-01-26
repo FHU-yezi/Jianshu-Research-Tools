@@ -4,7 +4,7 @@ from collections.abc import AsyncGenerator
 from typing import TYPE_CHECKING
 
 from jkit._base import DataObject, ResourceObject
-from jkit._network_request import get_json
+from jkit._network import send_request
 from jkit._normalization import normalize_assets_amount
 from jkit.config import CONFIG
 from jkit.exceptions import ResourceUnavailableError
@@ -53,10 +53,12 @@ class UserAssetsRanking(ResourceObject):
     async def __aiter__(self) -> AsyncGenerator[UserAssetsRankingRecord, None]:
         now_id = self._start_id
         while True:
-            data = await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            data = await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path="/asimov/fp_rankings",
-                params={"since_id": now_id - 1, "max_id": 10**9},
+                body={"since_id": now_id - 1, "max_id": 10**9},
+                response_type="JSON",
             )
             if not data["rankings"]:
                 return

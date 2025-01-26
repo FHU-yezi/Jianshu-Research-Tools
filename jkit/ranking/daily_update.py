@@ -2,8 +2,7 @@ from collections.abc import AsyncGenerator
 from typing import TYPE_CHECKING
 
 from jkit._base import DataObject, ResourceObject
-from jkit._network_request import get_json
-from jkit.config import CONFIG
+from jkit._network import send_request
 from jkit.msgspec_constraints import PositiveInt, UserName, UserSlug, UserUploadedUrl
 
 if TYPE_CHECKING:
@@ -29,9 +28,11 @@ class DailyUpdateRankingRecord(DataObject, frozen=True):
 
 class DailyUpdateRanking(ResourceObject):
     async def __aiter__(self) -> AsyncGenerator[DailyUpdateRankingRecord, None]:
-        data = await get_json(
-            endpoint=CONFIG.endpoints.jianshu,
+        data = await send_request(
+            datasource="JIANSHU",
+            method="GET",
             path="/asimov/daily_activity_participants/rank",
+            response_type="JSON",
         )
 
         for item in data["daps"]:

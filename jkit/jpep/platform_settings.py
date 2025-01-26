@@ -1,6 +1,5 @@
 from jkit._base import DataObject, ResourceObject
-from jkit._network_request import send_post
-from jkit.config import CONFIG
+from jkit._network import send_request
 from jkit.msgspec_constraints import NonNegativeFloat
 
 
@@ -16,10 +15,12 @@ class PlatformSettingsData(DataObject, frozen=True):
 
 class PlatformSettings(ResourceObject):
     async def get_data(self) -> PlatformSettingsData:
-        data = await send_post(
-            endpoint=CONFIG.endpoints.jpep,
+        data = await send_request(
+            datasource="JPEP",
+            method="POST",
             path="/getList/furnish.setting/1/",
-            json={"fields": "isClose,fee,shop_fee,minimum_price,buy_minimum_price"},
+            body={"fields": "isClose,fee,shop_fee,minimum_price,buy_minimum_price"},
+            response_type="JSON",
         )
 
         return PlatformSettingsData(

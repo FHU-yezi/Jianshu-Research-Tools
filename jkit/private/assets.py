@@ -9,14 +9,13 @@ from httpx import HTTPStatusError
 from msgspec import DecodeError
 
 from jkit._base import DataObject, ResourceObject
-from jkit._network_request import JSON_DECODER, get_json, send_post
+from jkit._network import JSON_DECODER, send_request
 from jkit._normalization import (
     normalize_assets_amount,
     normalize_assets_amount_precise,
     normalize_datetime,
     normalize_percentage,
 )
-from jkit.config import CONFIG
 from jkit.constants import _ASSETS_ACTION_FAILED_STATUS_CODE
 from jkit.credential import JianshuCredential
 from jkit.exceptions import BalanceNotEnoughError, WeeklyConvertLimitExceededError
@@ -94,13 +93,15 @@ class Assets(ResourceObject):
         now_max_id = max_id
 
         while True:
-            data = await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            data = await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path="/asimov/fp_wallets/transactions",
                 params={"since_id": 0, "max_id": now_max_id}
                 if now_max_id
                 else {"since_id": 0},
                 cookies=self._credential.cookies,
+                response_type="JSON",
             )
             if not data["transactions"]:
                 return
@@ -127,13 +128,15 @@ class Assets(ResourceObject):
         now_max_id = max_id
 
         while True:
-            data = await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            data = await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path="/asimov/fp_wallets/jsb_transactions",
                 params={"since_id": 0, "max_id": now_max_id}
                 if now_max_id
                 else {"since_id": 0},
                 cookies=self._credential.cookies,
+                response_type="JSON",
             )
             if not data["transactions"]:
                 return
@@ -160,11 +163,13 @@ class Assets(ResourceObject):
         now_page = 1
 
         while True:
-            data = await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            data = await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path="/asimov/fp_wallets/jsd_rewards",
                 params={"page": now_page, "count": page_size},
                 cookies=self._credential.cookies,
+                response_type="JSON",
             )
             if not data["transactions"]:
                 return
@@ -188,10 +193,12 @@ class Assets(ResourceObject):
 
     @property
     async def benefit_cards_info(self) -> BenefitCardsInfo:
-        data = await get_json(
-            endpoint=CONFIG.endpoints.jianshu,
+        data = await send_request(
+            datasource="JIANSHU",
+            method="GET",
             path="/asimov/fp_wallets/benefit_cards/info",
             cookies=self._credential.cookies,
+            response_type="JSON",
         )
 
         return BenefitCardsInfo(
@@ -207,11 +214,13 @@ class Assets(ResourceObject):
         now_page = 1
 
         while True:
-            data = await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            data = await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path="/asimov/fp_wallets/benefit_cards/unsent",
                 params={"page": now_page, "count": page_count},
                 cookies=self._credential.cookies,
+                response_type="JSON",
             )
 
             if not data["benefit_cards"]:
@@ -232,11 +241,13 @@ class Assets(ResourceObject):
         now_page = 1
 
         while True:
-            data = await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            data = await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path="/asimov/fp_wallets/benefit_cards/active",
                 params={"page": now_page, "count": page_count},
                 cookies=self._credential.cookies,
+                response_type="JSON",
             )
 
             if not data["benefit_cards"]:
@@ -258,11 +269,13 @@ class Assets(ResourceObject):
         now_page = 1
 
         while True:
-            data = await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            data = await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path="/asimov/fp_wallets/benefit_cards/expire",
                 params={"page": now_page, "count": page_count},
                 cookies=self._credential.cookies,
+                response_type="JSON",
             )
 
             if not data["benefit_cards"]:
@@ -287,12 +300,13 @@ class Assets(ResourceObject):
 
         try:
             with suppress(DecodeError):  # TODO
-                await send_post(
-                    endpoint=CONFIG.endpoints.jianshu,
+                await send_request(
+                    datasource="JIANSHU",
+                    method="POST",
                     path="/asimov/fp_wallets/exchange_jsb",
-                    json={"count": str(amount)},
-                    headers={"Accept": "application/json"},
+                    body={"count": str(amount)},
                     cookies=self._credential.cookies,
+                    response_type="JSON",
                 )
         except HTTPStatusError as e:
             if e.response.status_code == _ASSETS_ACTION_FAILED_STATUS_CODE:
@@ -313,12 +327,13 @@ class Assets(ResourceObject):
 
         try:
             with suppress(DecodeError):  # TODO
-                await send_post(
-                    endpoint=CONFIG.endpoints.jianshu,
+                await send_request(
+                    datasource="JIANSHU",
+                    method="POST",
                     path="/asimov/fp_wallets/exchange_jsd",
-                    json={"count": str(amount)},
-                    headers={"Accept": "application/json"},
+                    body={"count": str(amount)},
                     cookies=self._credential.cookies,
+                    response_type="JSON",
                 )
         except HTTPStatusError as e:
             if e.response.status_code == _ASSETS_ACTION_FAILED_STATUS_CODE:

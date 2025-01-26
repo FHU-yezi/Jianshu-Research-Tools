@@ -5,9 +5,8 @@ from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING
 
 from jkit._base import DataObject, ResourceObject
-from jkit._network_request import get_json
+from jkit._network import send_request
 from jkit._normalization import normalize_assets_amount
-from jkit.config import CONFIG
 from jkit.exceptions import APIUnsupportedError
 from jkit.identifier_convert import article_slug_to_url
 from jkit.msgspec_constraints import (
@@ -74,10 +73,12 @@ class ArticleEarningRanking(ResourceObject):
         self._target_date = target_date
 
     async def get_data(self) -> ArticleEarningRankingData:
-        data = await get_json(
-            endpoint=CONFIG.endpoints.jianshu,
+        data = await send_request(
+            datasource="JIANSHU",
+            method="GET",
             path="/asimov/fp_rankings/voter_notes",
-            params={"date": self._target_date.strftime(r"%Y%m%d")},
+            body={"date": self._target_date.strftime(r"%Y%m%d")},
+            response_type="JSON",
         )
 
         return ArticleEarningRankingData(

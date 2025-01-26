@@ -5,7 +5,6 @@ from datetime import datetime
 from enum import Enum
 from typing import (
     TYPE_CHECKING,
-    Any,
     Literal,
 )
 
@@ -17,13 +16,12 @@ from jkit._base import (
     ResourceObject,
     SlugAndUrlMixin,
 )
-from jkit._network_request import get_json
+from jkit._network import send_request
 from jkit._normalization import (
     normalize_assets_amount,
     normalize_datetime,
     normalize_percentage,
 )
-from jkit.config import CONFIG
 from jkit.constants import (
     _BLANK_LINES_REGEX,
     _HTML_TAG_REGEX,
@@ -229,9 +227,11 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
             return
 
         try:
-            await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path=f"/asimov/p/{self.slug}",
+                response_type="JSON",
             )
             self._checked = True
         except HTTPStatusError as e:
@@ -250,9 +250,11 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     async def info(self) -> ArticleInfo:
         await self._auto_check()
 
-        data = await get_json(
-            endpoint=CONFIG.endpoints.jianshu,
+        data = await send_request(
+            datasource="JIANSHU",
+            method="GET",
             path=f"/asimov/p/{self.slug}",
+            response_type="JSON",
         )
 
         return ArticleInfo(
@@ -313,9 +315,11 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     async def views_count(self) -> int:
         await self._auto_check()
 
-        data = await get_json(
-            endpoint=CONFIG.endpoints.jianshu,
+        data = await send_request(
+            datasource="JIANSHU",
+            method="GET",
             path=f"/shakespeare/v2/notes/{self.slug}/views_count",
+            response_type="JSON",
         )
 
         return data["views_count"]
@@ -324,9 +328,11 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     async def audio_info(self) -> ArticleAudioInfo | None:
         await self._auto_check()
 
-        data = await get_json(
-            endpoint=CONFIG.endpoints.jianshu,
+        data = await send_request(
+            datasource="JIANSHU",
+            method="GET",
             path=f"/shakespeare/v2/notes/{self.slug}/audio",
+            response_type="JSON",
         )
 
         if not data["exists"]:
@@ -345,9 +351,11 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     async def belong_to_notebook(self) -> ArticleBelongToNotebookInfo:
         await self._auto_check()
 
-        data = await get_json(
-            endpoint=CONFIG.endpoints.jianshu,
+        data = await send_request(
+            datasource="JIANSHU",
+            method="GET",
             path=f"/shakespeare/v2/notes/{self.slug}/book",
+            response_type="JSON",
         )
 
         return ArticleBelongToNotebookInfo(
@@ -362,10 +370,12 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
 
         now_page = start_page
         while True:
-            data = await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            data = await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path=f"/shakespeare/notes/{await self.id}/included_collections",
-                params={"page": now_page, "count": page_size},
+                body={"page": now_page, "count": page_size},
+                response_type="JSON",
             )
             if not data["collections"]:
                 return
@@ -393,15 +403,17 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
 
         now_page = start_page
         while True:
-            data = await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            data = await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path=f"/shakespeare/notes/{await self.id}/comments",
-                params={
+                body={
                     "page": now_page,
                     "order_by": direction.lower(),
                     "author_only": author_only,
                     "count": page_size,
                 },
+                response_type="JSON",
             )
             if not data["comments"]:
                 return
@@ -452,13 +464,15 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     ) -> AsyncGenerator[ArticleFeaturedCommentInfo, None]:
         await self._auto_check()
 
-        data: list[dict[str, Any]] = await get_json(
-            endpoint=CONFIG.endpoints.jianshu,
+        data = await send_request(
+            datasource="JIANSHU",
+            method="GET",
             path=f"/shakespeare/notes/{self.slug}/featured_comments",
-            params={
+            body={
                 "count": count,
             },
-        )  # type: ignore
+            response_type="JSON_LIST",
+        )
 
         for item in data:
             yield ArticleFeaturedCommentInfo(

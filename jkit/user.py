@@ -5,7 +5,6 @@ from enum import Enum
 from re import compile as re_compile
 from typing import (
     TYPE_CHECKING,
-    Any,
     Literal,
 )
 
@@ -17,9 +16,8 @@ from jkit._base import (
     ResourceObject,
     SlugAndUrlMixin,
 )
-from jkit._network_request import get_html, get_json
+from jkit._network import send_request
 from jkit._normalization import normalize_assets_amount, normalize_datetime
-from jkit.config import CONFIG
 from jkit.constants import _RESOURCE_UNAVAILABLE_STATUS_CODE
 from jkit.exceptions import ResourceUnavailableError
 from jkit.identifier_check import is_user_slug
@@ -170,9 +168,11 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
             return
 
         try:
-            await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path=f"/asimov/users/slug/{self.slug}",
+                response_type="JSON",
             )
         except HTTPStatusError as e:
             if e.response.status_code == _RESOURCE_UNAVAILABLE_STATUS_CODE:
@@ -190,9 +190,11 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     async def info(self) -> UserInfo:
         await self._auto_check()
 
-        data = await get_json(
-            endpoint=CONFIG.endpoints.jianshu,
+        data = await send_request(
+            datasource="JIANSHU",
+            method="GET",
             path=f"/asimov/users/slug/{self.slug}",
+            response_type="JSON",
         )
 
         return UserInfo(
@@ -246,8 +248,11 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     async def assets_info(self) -> tuple[float, float | None, float | None]:
         fp_amount = (await self.info).fp_amount
 
-        assets_amount_data = await get_html(
-            endpoint=CONFIG.endpoints.jianshu, path=f"/u/{self.slug}"
+        assets_amount_data = await send_request(
+            datasource="JIANSHU",
+            method="GET",
+            path=f"/u/{self.slug}",
+            response_type="HTML",
         )
         try:
             assets_amount = float(
@@ -279,15 +284,17 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
 
         now_page = start_page
         while True:
-            data = await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            data = await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path=f"/users/{self.slug}/collections",
-                params={
+                body={
                     "slug": self.slug,
                     "type": "own",
                     "page": now_page,
                     "per_page": page_size,
                 },
+                response_type="JSON",
             )
             if not data["collections"]:
                 return
@@ -309,15 +316,17 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
 
         now_page = start_page
         while True:
-            data = await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            data = await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path=f"/users/{self.slug}/collections",
-                params={
+                body={
                     "slug": self.slug,
                     "type": "manager",
                     "page": now_page,
                     "per_page": page_size,
                 },
+                response_type="JSON",
             )
             if not data["collections"]:
                 return
@@ -339,15 +348,17 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
 
         now_page = start_page
         while True:
-            data = await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            data = await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path=f"/users/{self.slug}/notebooks",
-                params={
+                body={
                     "slug": self.slug,
                     "type": "manager",
                     "page": now_page,
                     "per_page": page_size,
                 },
+                response_type="JSON",
             )
             if not data["notebooks"]:
                 return
@@ -375,10 +386,11 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
 
         now_page = start_page
         while True:
-            data: list[dict[str, Any]] = await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            data = await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path=f"/asimov/users/slug/{self.slug}/public_notes",
-                params={
+                body={
                     "page": now_page,
                     "count": page_size,
                     "order_by": {
@@ -387,7 +399,8 @@ class User(ResourceObject, CheckableMixin, SlugAndUrlMixin):
                         "POPULARITY": "top",
                     }[order_by],
                 },
-            )  # type: ignore
+                response_type="JSON_LIST",
+            )
             if not data:
                 return
 

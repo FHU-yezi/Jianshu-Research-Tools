@@ -1,10 +1,9 @@
 from collections.abc import AsyncGenerator
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from jkit._base import DataObject, ResourceObject
-from jkit._network_request import get_json
+from jkit._network import send_request
 from jkit._normalization import normalize_datetime
-from jkit.config import CONFIG
 from jkit.msgspec_constraints import (
     NonEmptyStr,
     NormalizedDatetime,
@@ -42,11 +41,13 @@ class Lottery(ResourceObject):
     async def iter_win_records(
         self, *, count: int = 100
     ) -> AsyncGenerator[LotteryWinRecord, None]:
-        data: list[dict[str, Any]] = await get_json(
-            endpoint=CONFIG.endpoints.jianshu,
+        data = await send_request(
+            datasource="JIANSHU",
+            method="GET",
             path="/asimov/ad_rewards/winner_list",
-            params={"count": count},
-        )  # type: ignore
+            body={"count": count},
+            response_type="JSON_LIST",
+        )
 
         for item in data:
             yield LotteryWinRecord(

@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator
 from typing import (
     TYPE_CHECKING,
-    Any,
     Literal,
 )
 
@@ -15,9 +14,8 @@ from jkit._base import (
     ResourceObject,
     SlugAndUrlMixin,
 )
-from jkit._network_request import get_json
+from jkit._network import send_request
 from jkit._normalization import normalize_assets_amount, normalize_datetime
-from jkit.config import CONFIG
 from jkit.constants import _RESOURCE_UNAVAILABLE_STATUS_CODE
 from jkit.exceptions import ResourceUnavailableError
 from jkit.identifier_check import is_collection_slug
@@ -119,9 +117,11 @@ class Collection(ResourceObject, CheckableMixin, SlugAndUrlMixin):
             return
 
         try:
-            await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path=f"/asimov/collections/slug/{self.slug}",
+                response_type="JSON",
             )
             self._checked = True
         except HTTPStatusError as e:
@@ -136,9 +136,11 @@ class Collection(ResourceObject, CheckableMixin, SlugAndUrlMixin):
     async def info(self) -> CollectionInfo:
         await self._auto_check()
 
-        data = await get_json(
-            endpoint=CONFIG.endpoints.jianshu,
+        data = await send_request(
+            datasource="JIANSHU",
+            method="GET",
             path=f"/asimov/collections/slug/{self.slug}",
+            response_type="JSON",
         )
 
         return CollectionInfo(
@@ -169,10 +171,11 @@ class Collection(ResourceObject, CheckableMixin, SlugAndUrlMixin):
 
         now_page = start_page
         while True:
-            data: list[dict[str, Any]] = await get_json(
-                endpoint=CONFIG.endpoints.jianshu,
+            data = await send_request(
+                datasource="JIANSHU",
+                method="GET",
                 path=f"/asimov/collections/slug/{self.slug}/public_notes",
-                params={
+                body={
                     "page": now_page,
                     "count": page_size,
                     "ordered_by": {
@@ -181,7 +184,8 @@ class Collection(ResourceObject, CheckableMixin, SlugAndUrlMixin):
                         "POPULARITY": "hot",
                     }[order_by],
                 },
-            )  # type: ignore
+                response_type="JSON_LIST",
+            )
             if not data:
                 return
 

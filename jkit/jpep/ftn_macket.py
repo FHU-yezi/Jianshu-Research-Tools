@@ -5,9 +5,8 @@ from enum import Enum
 from typing import Literal
 
 from jkit._base import DataObject, ResourceObject
-from jkit._network_request import send_post
+from jkit._network import send_request
 from jkit._normalization import normalize_datetime
-from jkit.config import CONFIG
 from jkit.msgspec_constraints import (
     NonEmptyStr,
     NonNegativeInt,
@@ -56,11 +55,12 @@ class FTNMacket(ResourceObject):
     ) -> AsyncGenerator[FTNMacketOrderRecord, None]:
         now_page = start_page
         while True:
-            data = await send_post(
-                endpoint=CONFIG.endpoints.jpep,
-                path="/getList/furnish.bei/",
-                params={"page": now_page},
-                json={
+            data = await send_request(
+                datasource="JPEP",
+                method="POST",
+                # TODO
+                path=f"/getList/furnish.bei/?page={now_page}",
+                body={
                     "filter": [
                         {"trade": 1 if type == "BUY" else 0},
                         {"status": 1},
@@ -82,6 +82,7 @@ class FTNMacket(ResourceObject):
                         {"tradeNum": "tradeNum"},
                     ],
                 },
+                response_type="JSON",
             )
 
             if not data["data"]:

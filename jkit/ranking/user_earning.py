@@ -5,9 +5,8 @@ from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING, Literal
 
 from jkit._base import DataObject, ResourceObject
-from jkit._network_request import get_json
+from jkit._network import send_request
 from jkit._normalization import normalize_assets_amount
-from jkit.config import CONFIG
 from jkit.exceptions import APIUnsupportedError
 from jkit.msgspec_constraints import (
     NonNegativeFloat,
@@ -64,13 +63,15 @@ class UserEarningRanking(ResourceObject):
         self._type = type
 
     async def get_data(self) -> UserEarningRankingData:
-        data = await get_json(
-            endpoint=CONFIG.endpoints.jianshu,
+        data = await send_request(
+            datasource="JIANSHU",
+            method="GET",
             path="/asimov/fp_rankings/voter_users",
-            params={
+            body={
                 "type": {"all": None, "creating": "note", "voting": "like"}[self._type],
                 "date": self._target_date.strftime(r"%Y%m%d"),
             },
+            response_type="JSON",
         )
 
         return UserEarningRankingData(
