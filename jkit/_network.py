@@ -3,11 +3,13 @@ from __future__ import annotations
 from typing import Any, Literal, overload
 
 from httpx import AsyncClient
-from msgspec.json import Decoder
+from msgspec.json import Decoder as JsonDecoder
+from msgspec.json import Encoder as JsonEncoder
 
 from jkit.config import CONFIG
 
-JSON_DECODER = Decoder()
+JSON_ENCODER = JsonEncoder()
+JSON_DECODER = JsonDecoder()
 
 DatasourceType = Literal["JIANSHU", "JPEP"]
 
@@ -72,7 +74,7 @@ async def send_request(  # noqa: PLR0913
         method=method,
         url=path,
         params=params,
-        json=body,
+        content=JSON_ENCODER.encode(body) if body else None,
         headers={
             "Accpet": "text/html" if response_type == "HTML" else "application/json"
         },
