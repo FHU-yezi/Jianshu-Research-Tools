@@ -11,10 +11,10 @@ from typing import (
 from httpx import HTTPStatusError
 
 from jkit._base import (
-    CheckableMixin,
+    CheckableResourceMixin,
     DataObject,
     ResourceObject,
-    SlugAndUrlMixin,
+    SlugAndUrlResourceMixin,
 )
 from jkit._network import send_request
 from jkit._normalization import (
@@ -28,7 +28,7 @@ from jkit.constants import (
     _RESOURCE_UNAVAILABLE_STATUS_CODE,
 )
 from jkit.exceptions import ResourceUnavailableError
-from jkit.identifier_check import is_article_slug
+from jkit.identifier_check import is_article_slug, is_article_url
 from jkit.identifier_convert import article_slug_to_url, article_url_to_slug
 from jkit.msgspec_constraints import (
     CollectionSlug,
@@ -203,24 +203,21 @@ class ArticleFeaturedCommentInfo(
     score: PositiveInt
 
 
-class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
+class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
+    _resource_readable_name = "文章"
+
     _slug_check_func = is_article_slug
-    _slug_to_url_func = article_slug_to_url
+    _url_check_func = is_article_url
+
     _url_to_slug_func = article_url_to_slug
+    _slug_to_url_func = article_slug_to_url
 
-    def __init__(
-        self,
-        *,
-        slug: str | None = None,
-        url: str | None = None,
-    ) -> None:
-        super().__init__()
+    def __init__(self, *, slug: str | None = None, url: str | None = None) -> None:
+        SlugAndUrlResourceMixin.__init__(self, slug=slug, url=url)
+        CheckableResourceMixin.__init__(self)
 
-        self._slug = self._check_params(
-            object_readable_name="文章",
-            slug=slug,
-            url=url,
-        )
+    def __repr__(self) -> str:
+        return SlugAndUrlResourceMixin.__repr__(self)
 
     async def check(self) -> None:
         try:
@@ -237,6 +234,8 @@ class Article(ResourceObject, CheckableMixin, SlugAndUrlMixin):
                 ) from None
 
             raise
+        else:
+            self._checked = True
 
     @property
     async def id(self) -> int:

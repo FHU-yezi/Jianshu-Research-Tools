@@ -6,17 +6,17 @@ from typing import TYPE_CHECKING, Literal, TypeVar
 from httpx import HTTPStatusError
 
 from jkit._base import (
-    CheckableMixin,
+    CheckableResourceMixin,
     DataObject,
-    IdAndUrlMixin,
+    IdAndUrlResourceMixin,
     ResourceObject,
 )
 from jkit._network import send_request
 from jkit._normalization import normalize_assets_amount, normalize_datetime
 from jkit.constants import _RESOURCE_UNAVAILABLE_STATUS_CODE
 from jkit.exceptions import ResourceUnavailableError
-from jkit.identifier_check import is_notebook_id
-from jkit.identifier_convert import notebook_id_to_url
+from jkit.identifier_check import is_notebook_id, is_notebook_url
+from jkit.identifier_convert import notebook_id_to_url, notebook_url_to_id
 from jkit.msgspec_constraints import (
     ArticleSlug,
     NonEmptyStr,
@@ -94,25 +94,21 @@ class NotebookArticleInfo(DataObject, frozen=True):
         return Article.from_slug(self.slug)._as_checked()
 
 
-class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
-    def __init__(self, *, id: int) -> None:
-        super().__init__()
+class Notebook(ResourceObject, IdAndUrlResourceMixin, CheckableResourceMixin):
+    _resource_readable_name = "文集"
 
-        if not is_notebook_id(id):
-            raise ValueError(f"文集 ID 无效：{id}")
-        self._id = id
+    _id_check_func = is_notebook_id
+    _url_check_func = is_notebook_url
 
-    @classmethod
-    def from_id(cls: type[T], id: int, /) -> T:
-        return cls(id=id)
+    _url_to_id_func = notebook_url_to_id
+    _id_to_url_func = notebook_id_to_url
 
-    @property
-    def id(self) -> int:
-        return self._id
+    def __init__(self, *, id: int | None = None, url: str | None = None) -> None:
+        IdAndUrlResourceMixin.__init__(self, id=id, url=url)
+        CheckableResourceMixin.__init__(self)
 
-    @property
-    def url(self) -> str:
-        return notebook_id_to_url(self._id)
+    def __repr__(self) -> str:
+        return IdAndUrlResourceMixin.__repr__(self)
 
     async def check(self) -> None:
         try:
@@ -129,6 +125,8 @@ class Notebook(ResourceObject, CheckableMixin, IdAndUrlMixin):
                 ) from None
 
             raise
+        else:
+            self._checked = True
 
     @property
     async def info(self) -> NotebookInfo:

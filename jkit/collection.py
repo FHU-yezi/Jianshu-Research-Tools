@@ -9,16 +9,16 @@ from typing import (
 from httpx import HTTPStatusError
 
 from jkit._base import (
-    CheckableMixin,
+    CheckableResourceMixin,
     DataObject,
     ResourceObject,
-    SlugAndUrlMixin,
+    SlugAndUrlResourceMixin,
 )
 from jkit._network import send_request
 from jkit._normalization import normalize_assets_amount, normalize_datetime
 from jkit.constants import _RESOURCE_UNAVAILABLE_STATUS_CODE
 from jkit.exceptions import ResourceUnavailableError
-from jkit.identifier_check import is_collection_slug
+from jkit.identifier_check import is_collection_slug, is_collection_url
 from jkit.identifier_convert import collection_slug_to_url, collection_url_to_slug
 from jkit.msgspec_constraints import (
     ArticleSlug,
@@ -98,19 +98,21 @@ class CollectionArticleInfo(DataObject, frozen=True):
         return Article.from_slug(self.slug)._as_checked()
 
 
-class Collection(ResourceObject, CheckableMixin, SlugAndUrlMixin):
+class Collection(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
+    _resource_readable_name = "专题"
+
     _slug_check_func = is_collection_slug
-    _slug_to_url_func = collection_slug_to_url
+    _url_check_func = is_collection_url
+
     _url_to_slug_func = collection_url_to_slug
+    _slug_to_url_func = collection_slug_to_url
 
     def __init__(self, *, slug: str | None = None, url: str | None = None) -> None:
-        super().__init__()
+        SlugAndUrlResourceMixin.__init__(self, slug=slug, url=url)
+        CheckableResourceMixin.__init__(self)
 
-        self._slug = self._check_params(
-            object_readable_name="专题",
-            slug=slug,
-            url=url,
-        )
+    def __repr__(self) -> str:
+        return SlugAndUrlResourceMixin.__repr__(self)
 
     async def check(self) -> None:
         try:
@@ -127,6 +129,8 @@ class Collection(ResourceObject, CheckableMixin, SlugAndUrlMixin):
                 ) from None
 
             raise
+        else:
+            self._checked = True
 
     @property
     async def info(self) -> CollectionInfo:

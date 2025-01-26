@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Callable, ClassVar, TypeVar
+from typing import Any, Callable, ClassVar, TypeVar
 
 from msgspec import Struct, convert, to_builtins
 from msgspec import ValidationError as MsgspecValidationError
@@ -10,9 +10,152 @@ from jkit.config import CONFIG
 from jkit.exceptions import ValidationError
 
 T = TypeVar("T", bound="DataObject")
-P1 = TypeVar("P1", bound="CheckableMixin")
-P2 = TypeVar("P2", bound="SlugAndUrlMixin")
-P3 = TypeVar("P3", bound="IdAndUrlMixin")
+P1 = TypeVar("P1", bound="CheckableResourceMixin")
+P2 = TypeVar("P2", bound="SlugAndUrlResourceMixin")
+P3 = TypeVar("P3", bound="IdAndUrlResourceMixin")
+
+
+def _check_func_placeholder(x: Any) -> bool:  # noqa: ANN401
+    raise NotImplementedError
+
+
+def _convert_func_placeholder(x: Any) -> Any:  # noqa: ANN401
+    raise NotImplementedError
+
+
+class ResourceObject:
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
+
+
+class SlugAndUrlResourceMixin:
+    _resource_readable_name: ClassVar[str] = ""
+
+    _slug_check_func: Callable[[str], bool] = _check_func_placeholder
+    _url_check_func: Callable[[str], bool] = _check_func_placeholder
+
+    _url_to_slug_func: Callable[[str], str] = _convert_func_placeholder
+    _slug_to_url_func: Callable[[str], str] = _convert_func_placeholder
+
+    def __init__(self, *, slug: str | None = None, url: str | None = None) -> None:
+        class_ = self.__class__
+        name = class_._resource_readable_name
+
+        if slug is None and url is None:
+            raise ValueError(f"必须提供 {name} Slug 或 {name} Url")
+
+        if slug is not None and url is not None:
+            raise ValueError(f"{name} Slug 与 {name} Url 不可同时提供")
+
+        if slug is not None:
+            if not class_._slug_check_func(slug):
+                raise ValueError(f"{slug} 不是有效的 {name} Slug")
+
+            self._slug = slug
+
+        if url is not None:
+            if not class_._url_check_func(url):
+                raise ValueError(f"{url} 不是有效的 {name} Url")
+
+            self._slug = class_._url_to_slug_func(url)
+
+    @classmethod
+    def from_slug(cls: type[P2], slug: str, /) -> P2:
+        return cls(slug=slug)
+
+    @classmethod
+    def from_url(cls: type[P2], url: str, /) -> P2:
+        return cls(url=url)
+
+    @property
+    def slug(self) -> str:
+        return self._slug
+
+    @property
+    def url(self) -> str:
+        return self.__class__._slug_to_url_func(self._slug)
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, self.__class__) and self.slug == other.slug
+
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}(slug="{self.slug}")'
+
+
+class IdAndUrlResourceMixin:
+    _resource_readable_name: ClassVar[str] = ""
+
+    _id_check_func: Callable[[int], bool] = _check_func_placeholder
+    _url_check_func: Callable[[str], bool] = _check_func_placeholder
+
+    _url_to_id_func: Callable[[str], int] = _convert_func_placeholder
+    _id_to_url_func: Callable[[int], str] = _convert_func_placeholder
+
+    def __init__(self, *, id: int | None = None, url: str | None = None) -> None:
+        class_ = self.__class__
+        name = class_._resource_readable_name
+
+        if id is None and url is None:
+            raise ValueError(f"必须提供 {name} Id 或 {name} Url")
+
+        if id is not None and url is not None:
+            raise ValueError(f"{name} Id 与 {name} Url 不可同时提供")
+
+        if id is not None:
+            if not class_._id_check_func(id):
+                raise ValueError(f"{id} 不是有效的 {name} Id")
+
+            self._id = id
+
+        if url is not None:
+            if not class_._url_check_func(url):
+                raise ValueError(f"{url} 不是有效的 {name} Url")
+
+            self._id = class_._url_to_id_func(url)
+
+    @classmethod
+    def from_id(cls: type[P3], id: int, /) -> P3:
+        return cls(id=id)
+
+    @classmethod
+    def from_url(cls: type[P3], url: str, /) -> P3:
+        return cls(url=url)
+
+    @property
+    def id(self) -> int:
+        return self._id
+
+    @property
+    def url(self) -> str:
+        return self.__class__._id_to_url_func(self._id)
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, self.__class__) and self._id == other._id
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id})"
+
+
+class CheckableResourceMixin(metaclass=ABCMeta):
+    def __init__(self) -> None:
+        self._checked = False
+
+    @abstractmethod
+    async def check(self) -> None:
+        raise NotImplementedError
+
+    async def _require_check(self) -> None:
+        if self._checked or not CONFIG.resource_check.auto_check:
+            return
+
+        await self.check()
+        self._checked = True
+
+    def _as_checked(self: P1) -> P1:
+        if not CONFIG.resource_check.force_check_safe_data:
+            self._checked = True
+
+        return self
 
 
 class DataObject(Struct, frozen=True, eq=True, kw_only=True):
@@ -40,130 +183,3 @@ class DataObject(Struct, frozen=True, eq=True, kw_only=True):
         return (
             self.__class__.__name__ + "(\n    " + ",\n    ".join(field_strings) + "\n)"
         )
-
-
-class ResourceObject:
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}()"
-
-
-class CheckableMixin(metaclass=ABCMeta):
-    def __init__(self) -> None:
-        self._checked = False
-
-    @abstractmethod
-    async def check(self) -> None:
-        raise NotImplementedError
-
-    async def _require_check(self) -> None:
-        if self._checked or not CONFIG.resource_check.auto_check:
-            return
-
-        await self.check()
-        self._checked = True
-
-    def _as_checked(self: P1) -> P1:
-        if not CONFIG.resource_check.force_check_safe_data:
-            self._checked = True
-
-        return self
-
-
-class SlugAndUrlMixin:
-    _slug_check_func: ClassVar[Callable[[str], bool] | None] = None
-    _slug_to_url_func: ClassVar[Callable[[str], str] | None] = None
-    _url_to_slug_func: ClassVar[Callable[[str], str] | None] = None
-
-    def __init__(self, *, slug: str | None = None, url: str | None = None) -> None:
-        del slug, url
-
-        self._slug = ""
-
-    @classmethod
-    def from_slug(cls: type[P2], slug: str, /) -> P2:
-        return cls(slug=slug)
-
-    @classmethod
-    def from_url(cls: type[P2], url: str, /) -> P2:
-        return cls(url=url)
-
-    @property
-    def slug(self) -> str:
-        return self._slug
-
-    @property
-    def url(self) -> str:
-        if not self.__class__._slug_to_url_func:
-            raise AssertionError
-
-        return self.__class__._slug_to_url_func(self._slug)
-
-    @classmethod
-    def _check_params(
-        cls,
-        *,
-        object_readable_name: str,
-        slug: str | None,
-        url: str | None,
-    ) -> str:
-        # 如果同时提供了 Slug 和 Url
-        if slug is not None and url is not None:
-            raise ValueError(
-                f"{object_readable_name} Slug 与{object_readable_name}链接不可同时提供"
-            )
-
-        # 如果提供了 Slug
-        if slug is not None:
-            if not cls._slug_check_func:
-                raise AssertionError
-
-            if not cls._slug_check_func(slug):
-                raise ValueError(f"{slug} 不是有效的{object_readable_name} Slug")
-
-            return slug
-        # 如果提供了 Url
-        elif url is not None:  # noqa: RET505
-            if not cls._url_to_slug_func:
-                raise AssertionError
-
-            # 转换函数中会对 Url 进行检查，并在 Url 无效时抛出异常
-            return cls._url_to_slug_func(url)
-
-        # 如果 Slug 与 Url 均未提供
-        raise ValueError(
-            f"必须提供{object_readable_name} Slug 或{object_readable_name}链接"
-        )
-
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__) and self.slug == other.slug
-
-    def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(slug="{self.slug}")'
-
-
-class IdAndUrlMixin(metaclass=ABCMeta):
-    @classmethod
-    @abstractmethod
-    def from_id(cls: type[P3], id: int, /) -> P3:
-        raise NotImplementedError
-
-    @classmethod
-    @abstractmethod
-    def from_url(cls: type[P3], url: str, /) -> P3:
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def id(self) -> int:
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def url(self) -> str:
-        raise NotImplementedError
-
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__) and self.id == other.id
-
-    def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(id="{self.id}")'
