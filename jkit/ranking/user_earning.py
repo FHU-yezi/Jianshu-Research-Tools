@@ -7,8 +7,7 @@ from typing import TYPE_CHECKING, Literal
 from jkit._base import DataObject, ResourceObject
 from jkit._network import send_request
 from jkit._normalization import normalize_assets_amount
-from jkit.exceptions import APIUnsupportedError
-from jkit.msgspec_constraints import (
+from jkit.constraints import (
     NonNegativeFloat,
     PositiveFloat,
     PositiveInt,
@@ -16,6 +15,7 @@ from jkit.msgspec_constraints import (
     UserSlug,
     UserUploadedUrl,
 )
+from jkit.exceptions import APIUnsupportedError
 
 if TYPE_CHECKING:
     from jkit.user import User

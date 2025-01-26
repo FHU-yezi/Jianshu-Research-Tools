@@ -17,15 +17,15 @@ from jkit._normalization import (
     normalize_percentage,
 )
 from jkit.constants import _ASSETS_ACTION_FAILED_STATUS_CODE
-from jkit.credential import JianshuCredential
-from jkit.exceptions import BalanceNotEnoughError, WeeklyConvertLimitExceededError
-from jkit.msgspec_constraints import (
+from jkit.constraints import (
     NonEmptyStr,
     NonNegativeFloat,
     NormalizedDatetime,
     Percentage,
     PositiveInt,
 )
+from jkit.credential import JianshuCredential
+from jkit.exceptions import BalanceNotEnoughError, WeeklyConvertLimitExceededError
 
 
 class AssetsTransactionRecord(DataObject, frozen=True):

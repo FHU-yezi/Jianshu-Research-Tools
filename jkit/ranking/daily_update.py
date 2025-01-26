@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from jkit._base import DataObject, ResourceObject
 from jkit._network import send_request
-from jkit.msgspec_constraints import PositiveInt, UserName, UserSlug, UserUploadedUrl
+from jkit.constraints import PositiveInt, UserName, UserSlug, UserUploadedUrl
 
 if TYPE_CHECKING:
     from jkit.user import User

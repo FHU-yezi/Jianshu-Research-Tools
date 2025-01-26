@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from jkit._base import DataObject, ResourceObject
 from jkit._network import send_request
 from jkit._normalization import normalize_datetime
-from jkit.msgspec_constraints import (
+from jkit.constraints import (
     NonEmptyStr,
     NormalizedDatetime,
     PositiveInt,

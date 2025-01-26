@@ -27,10 +27,7 @@ from jkit.constants import (
     _HTML_TAG_REGEX,
     _RESOURCE_UNAVAILABLE_STATUS_CODE,
 )
-from jkit.exceptions import ResourceUnavailableError
-from jkit.identifier_check import is_article_slug, is_article_url
-from jkit.identifier_convert import article_slug_to_url, article_url_to_slug
-from jkit.msgspec_constraints import (
+from jkit.constraints import (
     CollectionSlug,
     NonEmptyStr,
     NonNegativeFloat,
@@ -43,6 +40,9 @@ from jkit.msgspec_constraints import (
     UserSlug,
     UserUploadedUrl,
 )
+from jkit.exceptions import ResourceUnavailableError
+from jkit.identifier_check import is_article_slug, is_article_url
+from jkit.identifier_convert import article_slug_to_url, article_url_to_slug
 
 if TYPE_CHECKING:
     from jkit.collection import Collection

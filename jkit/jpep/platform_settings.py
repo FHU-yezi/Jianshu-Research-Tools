@@ -1,6 +1,6 @@
 from jkit._base import DataObject, ResourceObject
 from jkit._network import send_request
-from jkit.msgspec_constraints import NonNegativeFloat
+from jkit.constraints import NonNegativeFloat
 
 
 class PlatformSettingsData(DataObject, frozen=True):

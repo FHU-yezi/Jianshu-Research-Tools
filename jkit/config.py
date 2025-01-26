@@ -7,7 +7,7 @@ from httpx._types import HeaderTypes, ProxyTypes, TimeoutTypes
 from msgspec import Struct, convert, field, to_builtins
 
 from jkit import __version__
-from jkit.msgspec_constraints import NonEmptyStr
+from jkit.constraints import NonEmptyStr
 
 _DatasourceNameType = Literal["JIANSHU", "JPEP"]
 

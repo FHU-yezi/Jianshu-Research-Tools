@@ -17,10 +17,7 @@ from jkit._base import (
 from jkit._network import send_request
 from jkit._normalization import normalize_assets_amount, normalize_datetime
 from jkit.constants import _RESOURCE_UNAVAILABLE_STATUS_CODE
-from jkit.exceptions import ResourceUnavailableError
-from jkit.identifier_check import is_collection_slug, is_collection_url
-from jkit.identifier_convert import collection_slug_to_url, collection_url_to_slug
-from jkit.msgspec_constraints import (
+from jkit.constraints import (
     ArticleSlug,
     CollectionSlug,
     NonEmptyStr,
@@ -32,6 +29,9 @@ from jkit.msgspec_constraints import (
     UserSlug,
     UserUploadedUrl,
 )
+from jkit.exceptions import ResourceUnavailableError
+from jkit.identifier_check import is_collection_slug, is_collection_url
+from jkit.identifier_convert import collection_slug_to_url, collection_url_to_slug
 
 if TYPE_CHECKING:
     from jkit.article import Article

@@ -7,9 +7,7 @@ from typing import TYPE_CHECKING
 from jkit._base import DataObject, ResourceObject
 from jkit._network import send_request
 from jkit._normalization import normalize_assets_amount
-from jkit.exceptions import APIUnsupportedError
-from jkit.identifier_convert import article_slug_to_url
-from jkit.msgspec_constraints import (
+from jkit.constraints import (
     ArticleSlug,
     NonEmptyStr,
     PositiveFloat,
@@ -17,6 +15,8 @@ from jkit.msgspec_constraints import (
     UserName,
     UserUploadedUrl,
 )
+from jkit.exceptions import APIUnsupportedError
+from jkit.identifier_convert import article_slug_to_url
 
 if TYPE_CHECKING:
     from jkit.article import Article
