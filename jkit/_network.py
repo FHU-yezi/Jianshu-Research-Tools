@@ -78,7 +78,7 @@ async def send_request(  # noqa: PLR0913
         params=params,
         content=JSON_ENCODER.encode(body) if body else None,
         headers={
-            "Accpet": "text/html" if response_type == "HTML" else "application/json"
+            "Accept": "text/html" if response_type == "HTML" else "application/json"
         },
         cookies=cookies,
     )
