@@ -3,7 +3,7 @@ from jkit._network import send_request
 from jkit.constraints import NonNegativeFloat
 
 
-class PlatformSettingsData(DataObject, frozen=True):
+class RulesData(DataObject, frozen=True):
     opening: bool
 
     ftn_trade_fee: NonNegativeFloat
@@ -13,8 +13,8 @@ class PlatformSettingsData(DataObject, frozen=True):
     ftn_sell_trade_minimum_price: NonNegativeFloat
 
 
-class PlatformSettings(ResourceObject):
-    async def get_data(self) -> PlatformSettingsData:
+class Rules(ResourceObject):
+    async def get_rules(self) -> RulesData:
         data = await send_request(
             datasource="JPEP",
             method="POST",
@@ -23,7 +23,7 @@ class PlatformSettings(ResourceObject):
             response_type="JSON",
         )
 
-        return PlatformSettingsData(
+        return RulesData(
             opening=not bool(data["data"]["isClose"]),
             ftn_trade_fee=data["data"]["fee"],
             goods_trade_fee=data["data"]["shop_fee"],

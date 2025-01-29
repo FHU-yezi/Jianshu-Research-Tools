@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
-from enum import Enum
 from typing import Literal
 
 from jkit._base import DataObject, ResourceObject
@@ -15,58 +14,60 @@ from jkit.constraints import (
     PositiveInt,
 )
 
-
-class PaymentChannels(Enum):
-    WECHAT_PAY = "微信支付"
-    ALIPAY = "支付宝"
-    ANT_CREDIT_PAY = "蚂蚁花呗"
+FtnMarketOrderSupportedPaymentChannelsType = Literal[
+    "WECHAT_PAY", "ALIPAY", "ANT_CREDIT_PAY"
+]
 
 
-class PublisherInfoField(DataObject, frozen=True):
+class _PublisherInfoField(DataObject, frozen=True):
     id: PositiveInt
     name: NonEmptyStr
+
     hashed_name: NonEmptyStr
     avatar_url: NonEmptyStr | None
     credit: NonNegativeInt
 
 
-class FTNMacketOrderRecord(DataObject, frozen=True):
+class FtnMacketOrderData(DataObject, frozen=True):
     id: PositiveInt
-    price: PositiveFloat
 
+    price: PositiveFloat
     total_amount: PositiveInt
     traded_amount: NonNegativeInt
     tradable_amount: NonNegativeInt
     minimum_trade_amount: PositiveInt
 
-    traded_count: NonNegativeInt
+    completed_trades_count: NonNegativeInt
     publish_time: NormalizedDatetime
-    supported_payment_channels: tuple[PaymentChannels, ...]
+    supported_payment_channels: tuple[FtnMarketOrderSupportedPaymentChannelsType, ...]
 
-    publisher_info: PublisherInfoField
+    publisher_info: _PublisherInfoField
 
 
-class FTNMacket(ResourceObject):
+class FtnMacket(ResourceObject):
     async def iter_orders(
         self,
         *,
         type: Literal["BUY", "SELL"],
         start_page: int = 1,
-    ) -> AsyncGenerator[FTNMacketOrderRecord, None]:
-        now_page = start_page
+    ) -> AsyncGenerator[FtnMacketOrderData, None]:
+        current_page = start_page
+
         while True:
             data = await send_request(
                 datasource="JPEP",
                 method="POST",
-                # TODO
-                path=f"/getList/furnish.bei/?page={now_page}",
+                path=f"/getList/furnish.bei/?page={current_page}",
+                params={"page": current_page},
                 body={
                     "filter": [
+                        # 0：卖单 1：买单
                         {"trade": 1 if type == "BUY" else 0},
                         {"status": 1},
                         {"finish": 0},
                         {"tradable": {">": "0"}},
                     ],
+                    # 买单价格正序，卖单价格倒序
                     "sort": "price,pub_date" if type == "BUY" else "-price,pub_date",
                     "bind": [
                         {
@@ -89,34 +90,37 @@ class FTNMacket(ResourceObject):
                 break
 
             for item in data["data"]:
-                yield FTNMacketOrderRecord(
+                item_user = item["member.user"][0]
+
+                yield FtnMacketOrderData(
                     id=item["id"],
                     price=item["price"],
                     total_amount=item["totalNum"],
                     traded_amount=item["tradeNum"],
                     tradable_amount=item["tradable"],
                     minimum_trade_amount=item["minNum"],
-                    traded_count=item["tradeCount"],
+                    completed_trades_count=item["tradeCount"],
                     publish_time=normalize_datetime(item["pub_date"]),
+                    # TODO: 优化类型检查
                     supported_payment_channels=tuple(
                         {
-                            1: PaymentChannels.WECHAT_PAY,
-                            2: PaymentChannels.ALIPAY,
-                            3: PaymentChannels.ANT_CREDIT_PAY,
+                            1: "WECHAT_PAY",
+                            2: "ALIPAY",
+                            3: "ANT_CREDIT_PAY",
                         }[int(x)]
-                        for x in item["member.user"][0]["pay_types"].split("|")
+                        for x in item_user["pay_types"].split("|")
                     )
-                    if item["member.user"][0]["pay_types"]
-                    else (),
-                    publisher_info=PublisherInfoField(
-                        id=item["member.user"][0]["id"],
-                        name=item["member.user"][0]["username"],
-                        hashed_name=item["member.user"][0]["username_md5"],
-                        avatar_url=item["member.user"][0]["avatarUrl"]
-                        if item["member.user"][0]["avatarUrl"]
+                    if item_user["pay_types"]
+                    else (),  # type: ignore
+                    publisher_info=_PublisherInfoField(
+                        id=item_user["id"],
+                        name=item_user["username"],
+                        hashed_name=item_user["username_md5"],
+                        avatar_url=item_user["avatarUrl"]
+                        if item_user["avatarUrl"]
                         else None,
-                        credit=item["member.user"][0]["credit"],
+                        credit=item_user["credit"],
                     ),
                 )._validate()
 
-            now_page += 1
+            current_page += 1
