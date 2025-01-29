@@ -72,14 +72,16 @@ async def send_request(  # noqa: PLR0913
 ) -> dict[str, Any] | list[dict[str, Any]] | str:
     client = DATASOURCE_CLIENTS[datasource]
 
+    headers = {"Accept": "text/html" if response_type == "HTML" else "application/json"}
+    if body is not None:
+        headers["Content-Type"] = "application/json"
+
     response = await client.request(
         method=method,
         url=path,
         params=params,
         content=JSON_ENCODER.encode(body) if body else None,
-        headers={
-            "Accept": "text/html" if response_type == "HTML" else "application/json"
-        },
+        headers=headers,
         cookies=cookies,
     )
 
