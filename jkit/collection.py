@@ -38,7 +38,7 @@ if TYPE_CHECKING:
     from jkit.user import User
 
 
-class OwnerInfoField(DataObject, frozen=True):
+class _OwnerInfoField(DataObject, frozen=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -49,21 +49,22 @@ class OwnerInfoField(DataObject, frozen=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class CollectionInfo(DataObject, frozen=True):
+class InfoData(DataObject, frozen=True):
     id: PositiveInt
     slug: CollectionSlug
     name: NonEmptyStr
     image_url: UserUploadedUrl
     description: str
-    description_updated_at: NormalizedDatetime
-    new_article_added_at: NormalizedDatetime
-    owner_info: OwnerInfoField
+    description_update_time: NormalizedDatetime
+    # TODO: 修改变量名
+    latest_add_article_time: NormalizedDatetime
+    owner_info: _OwnerInfoField
 
     articles_count: NonNegativeInt
     subscribers_count: NonNegativeInt
 
 
-class ArticleAuthorInfoField(DataObject, frozen=True):
+class _ArticleAuthorInfoField(DataObject, frozen=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -75,16 +76,16 @@ class ArticleAuthorInfoField(DataObject, frozen=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class CollectionArticleInfo(DataObject, frozen=True):
+class ArticleData(DataObject, frozen=True):
     id: PositiveInt
     slug: ArticleSlug
     title: NonEmptyStr
     description: str
     image_url: UserUploadedUrl | None
-    published_at: NormalizedDatetime
+    publish_time: NormalizedDatetime
     is_paid: bool
     can_comment: bool
-    author_info: ArticleAuthorInfoField
+    author_info: _ArticleAuthorInfoField
 
     views_count: NonNegativeInt
     likes_count: NonNegativeInt
@@ -133,7 +134,7 @@ class Collection(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin
             self._checked = True
 
     @property
-    async def info(self) -> CollectionInfo:
+    async def info(self) -> InfoData:
         await self._require_check()
 
         data = await send_request(
@@ -143,15 +144,15 @@ class Collection(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin
             response_type="JSON",
         )
 
-        return CollectionInfo(
+        return InfoData(
             id=data["id"],
             slug=data["slug"],
             name=data["title"],
             image_url=data["image"],
             description=data["content_in_full"],
-            description_updated_at=normalize_datetime(data["last_updated_at"]),
-            new_article_added_at=normalize_datetime(data["newly_added_at"]),
-            owner_info=OwnerInfoField(
+            description_update_time=normalize_datetime(data["last_updated_at"]),
+            latest_add_article_time=normalize_datetime(data["newly_added_at"]),
+            owner_info=_OwnerInfoField(
                 id=data["owner"]["id"],
                 slug=data["owner"]["slug"],
                 name=data["owner"]["nickname"],
@@ -165,8 +166,7 @@ class Collection(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin
         *,
         start_page: int = 1,
         order_by: Literal["ADD_TIME", "LAST_COMMENT_TIME", "POPULARITY"] = "ADD_TIME",
-        page_size: int = 20,
-    ) -> AsyncGenerator[CollectionArticleInfo, None]:
+    ) -> AsyncGenerator[ArticleData, None]:
         await self._require_check()
 
         current_page = start_page
@@ -177,7 +177,7 @@ class Collection(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin
                 path=f"/asimov/collections/slug/{self.slug}/public_notes",
                 body={
                     "page": current_page,
-                    "count": page_size,
+                    "count": 20,
                     "ordered_by": {
                         "ADD_TIME": "time",
                         "LAST_COMMENT_TIME": "comment_time",
@@ -190,7 +190,7 @@ class Collection(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin
                 return
 
             for item in data:
-                yield CollectionArticleInfo(
+                yield ArticleData(
                     id=item["object"]["data"]["id"],
                     slug=item["object"]["data"]["slug"],
                     title=item["object"]["data"]["title"],
@@ -198,12 +198,12 @@ class Collection(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin
                     image_url=item["object"]["data"]["list_image_url"]
                     if item["object"]["data"]["list_image_url"]
                     else None,
-                    published_at=normalize_datetime(
+                    publish_time=normalize_datetime(
                         item["object"]["data"]["first_shared_at"]
                     ),
                     is_paid=item["object"]["data"]["paid"],
                     can_comment=item["object"]["data"]["commentable"],
-                    author_info=ArticleAuthorInfoField(
+                    author_info=_ArticleAuthorInfoField(
                         id=item["object"]["data"]["user"]["id"],
                         slug=item["object"]["data"]["user"]["slug"],
                         name=item["object"]["data"]["user"]["nickname"],

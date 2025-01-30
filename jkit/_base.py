@@ -193,12 +193,8 @@ class DataObject(Struct, frozen=True, eq=True, kw_only=True):
                 result.append(f"{key}={formatted_value}")
                 continue
 
-            # 截断长度大于 100 的 content / introduction 字符串
-            if (
-                ("content" in key or "introduction" in key)
-                and isinstance(value, str)
-                and len(value) > 100  # noqa: PLR2004
-            ):
+            # 截断长度大于 100 的字符串
+            if isinstance(value, str) and len(value) > 100:  # noqa: PLR2004
                 value = value[:100] + "..."
 
             result.append(f"{key}={value!r}")
