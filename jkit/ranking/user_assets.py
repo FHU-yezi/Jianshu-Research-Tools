@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from jkit.user import User
 
 
-class UserInfoField(DataObject, frozen=True):
+class _UserInfoField(DataObject, frozen=True):
     id: PositiveInt | None
     slug: UserSlug | None
     name: UserName | None
@@ -39,18 +39,18 @@ class UserInfoField(DataObject, frozen=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class UserAssetsRankingRecord(DataObject, frozen=True):
+class RecordData(DataObject, frozen=True):
     ranking: PositiveInt
     assets_amount: NonNegativeFloat
-    user_info: UserInfoField
+    user_info: _UserInfoField
 
 
 class UserAssetsRanking(ResourceObject):
-    def __init__(self, *, start_id: int = 1) -> None:
-        self._start_id = start_id
+    def __init__(self, *, start_ranking: int = 1) -> None:
+        self._start_ranking = start_ranking
 
-    async def __aiter__(self) -> AsyncGenerator[UserAssetsRankingRecord, None]:
-        current_id = self._start_id
+    async def iter_records(self) -> AsyncGenerator[RecordData, None]:
+        current_id = self._start_ranking
         while True:
             data = await send_request(
                 datasource="JIANSHU",
@@ -63,10 +63,10 @@ class UserAssetsRanking(ResourceObject):
                 return
 
             for item in data["rankings"]:
-                yield UserAssetsRankingRecord(
+                yield RecordData(
                     ranking=item["ranking"],
                     assets_amount=normalize_assets_amount(item["amount"]),
-                    user_info=UserInfoField(
+                    user_info=_UserInfoField(
                         id=item["user"]["id"],
                         slug=item["user"]["slug"],
                         name=item["user"]["nickname"],

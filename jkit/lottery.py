@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from jkit.user import User
 
 
-class UserInfoField(DataObject, frozen=True):
+class _UserInfoField(DataObject, frozen=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -29,18 +29,18 @@ class UserInfoField(DataObject, frozen=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class LotteryWinRecord(DataObject, frozen=True):
+class WinRecordData(DataObject, frozen=True):
     id: PositiveInt
     time: NormalizedDatetime
     award_name: NonEmptyStr
 
-    user_info: UserInfoField
+    user_info: _UserInfoField
 
 
 class Lottery(ResourceObject):
     async def iter_win_records(
         self, *, count: int = 100
-    ) -> AsyncGenerator[LotteryWinRecord, None]:
+    ) -> AsyncGenerator[WinRecordData, None]:
         data = await send_request(
             datasource="JIANSHU",
             method="GET",
@@ -50,11 +50,11 @@ class Lottery(ResourceObject):
         )
 
         for item in data:
-            yield LotteryWinRecord(
+            yield WinRecordData(
                 id=item["id"],
                 time=normalize_datetime(item["created_at"]),
                 award_name=item["name"],
-                user_info=UserInfoField(
+                user_info=_UserInfoField(
                     id=item["user"]["id"],
                     slug=item["user"]["slug"],
                     name=item["user"]["nickname"],

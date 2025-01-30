@@ -9,25 +9,25 @@ if TYPE_CHECKING:
     from jkit.user import User
 
 
-class UserInfoField(DataObject, frozen=True):
+class _UserInfoField(DataObject, frozen=True):
     slug: UserSlug
     name: UserName
     avatar_url: UserUploadedUrl
 
-    def to_user_obj(self) -> User:
+    def to_user_obj(self) -> "User":
         from jkit.user import User
 
         return User.from_slug(self.slug)._as_checked()
 
 
-class DailyUpdateRankingRecord(DataObject, frozen=True):
+class RecordData(DataObject, frozen=True):
     ranking: PositiveInt
     days: PositiveInt
-    user_info: UserInfoField
+    user_info: _UserInfoField
 
 
 class DailyUpdateRanking(ResourceObject):
-    async def __aiter__(self) -> AsyncGenerator[DailyUpdateRankingRecord, None]:
+    async def iter_records(self) -> AsyncGenerator[RecordData, None]:
         data = await send_request(
             datasource="JIANSHU",
             method="GET",
@@ -36,10 +36,10 @@ class DailyUpdateRanking(ResourceObject):
         )
 
         for item in data["daps"]:
-            yield DailyUpdateRankingRecord(
+            yield RecordData(
                 ranking=item["rank"],
                 days=item["checkin_count"],
-                user_info=UserInfoField(
+                user_info=_UserInfoField(
                     slug=item["slug"],
                     name=item["nickname"],
                     avatar_url=item["avatar"],

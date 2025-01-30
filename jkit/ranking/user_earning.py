@@ -21,7 +21,13 @@ if TYPE_CHECKING:
     from jkit.user import User
 
 
-class RecordField(DataObject, frozen=True):
+class SummaryData(DataObject, frozen=True):
+    fp_by_creating_amount_sum: PositiveFloat
+    fp_by_voting_amount_sum: PositiveFloat
+    total_fp_amount_sum: PositiveFloat
+
+
+class RecordData(DataObject, frozen=True):
     ranking: PositiveInt
     name: UserName
     slug: UserSlug
@@ -36,20 +42,11 @@ class RecordField(DataObject, frozen=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class UserEarningRankingData(DataObject, frozen=True):
-    total_fp_amount_sum: PositiveFloat
-    fp_by_creating_amount_sum: PositiveFloat
-    fp_by_voting_amount_sum: PositiveFloat
-    records: tuple[RecordField, ...]
-
-
 class UserEarningRanking(ResourceObject):
     def __init__(
         self,
         target_date: date | None = None,
         /,
-        *,
-        type: Literal["all", "creating", "voting"] = "all",
     ) -> None:
         if not target_date:
             target_date = datetime.now().date() - timedelta(days=1)
@@ -60,38 +57,45 @@ class UserEarningRanking(ResourceObject):
             raise ValueError("无法获取未来的排行榜数据")
 
         self._target_date = target_date
-        self._type = type
 
-    async def get_data(self) -> UserEarningRankingData:
+    async def get_summary(self) -> SummaryData:
         data = await send_request(
             datasource="JIANSHU",
             method="GET",
             path="/asimov/fp_rankings/voter_users",
             body={
-                "type": {"all": None, "creating": "note", "voting": "like"}[self._type],
                 "date": self._target_date.strftime(r"%Y%m%d"),
             },
             response_type="JSON",
         )
 
-        return UserEarningRankingData(
-            total_fp_amount_sum=normalize_assets_amount(data["fp"]),
+        return SummaryData(
             fp_by_creating_amount_sum=normalize_assets_amount(data["author_fp"]),
             fp_by_voting_amount_sum=normalize_assets_amount(data["voter_fp"]),
-            records=tuple(
-                RecordField(
-                    ranking=ranking,
-                    name=item["nickname"],
-                    slug=item["slug"],
-                    avatar_url=item["avatar"],
-                    total_fp_amount=normalize_assets_amount(item["fp"]),
-                    fp_by_creating_anount=normalize_assets_amount(item["author_fp"]),
-                    fp_by_voting_amount=normalize_assets_amount(item["voter_fp"]),
-                )
-                for ranking, item in enumerate(data["users"], start=1)
-            ),
+            total_fp_amount_sum=normalize_assets_amount(data["fp"]),
         )._validate()
 
-    async def __aiter__(self) -> AsyncGenerator[RecordField, None]:
-        for item in (await self.get_data()).records:
-            yield item
+    async def iter_records(
+        self, *, type: Literal["ALL", "CREATING", "VOTING"]
+    ) -> AsyncGenerator[RecordData, None]:
+        data = await send_request(
+            datasource="JIANSHU",
+            method="GET",
+            path="/asimov/fp_rankings/voter_users",
+            body={
+                "type": {"ALL": None, "CREATING": "note", "VOTING": "like"}[type],
+                "date": self._target_date.strftime(r"%Y%m%d"),
+            },
+            response_type="JSON",
+        )
+
+        for ranking, item in enumerate(data["users"], start=1):
+            yield RecordData(
+                ranking=ranking,
+                name=item["nickname"],
+                slug=item["slug"],
+                avatar_url=item["avatar"],
+                total_fp_amount=normalize_assets_amount(item["fp"]),
+                fp_by_creating_anount=normalize_assets_amount(item["author_fp"]),
+                fp_by_voting_amount=normalize_assets_amount(item["voter_fp"]),
+            )._validate()

@@ -25,6 +25,7 @@ from jkit.constraints import (
     NonNegativeFloat,
     NonNegativeInt,
     NormalizedDatetime,
+    NotebookId,
     PositiveInt,
     UserName,
     UserSlug,
@@ -96,7 +97,7 @@ class CollectionData(DataObject, frozen=True):
 
 
 class NotebookData(DataObject, frozen=True):
-    id: PositiveInt
+    id: NotebookId
     name: NonEmptyStr
     is_serial: bool
     is_paid: bool | None

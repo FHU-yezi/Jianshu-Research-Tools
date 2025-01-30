@@ -15,34 +15,36 @@ from jkit.constraints import (
     UserName,
     UserUploadedUrl,
 )
-from jkit.exceptions import APIUnsupportedError
+from jkit.exceptions import APIUnsupportedError, ResourceUnavailableError
 from jkit.identifier_convert import article_slug_to_url
 
 if TYPE_CHECKING:
     from jkit.article import Article
 
 
-class AuthorInfoField(DataObject, frozen=True):
+class SummaryData(DataObject, frozen=True):
+    fp_to_author_amount_sum: PositiveFloat
+    fp_to_voter_amount_sum: PositiveFloat
+    total_fp_amount_sum: PositiveFloat
+
+
+class _AuthorInfoField(DataObject, frozen=True):
     name: UserName | None
     avatar_url: UserUploadedUrl | None
 
 
-class RecordField(DataObject, frozen=True):
+class RecordData(DataObject, frozen=True):
     ranking: PositiveInt
-    title: NonEmptyStr | None
     slug: ArticleSlug | None
-    total_fp_amount: PositiveFloat
+    title: NonEmptyStr | None
     fp_to_author_anount: PositiveFloat
     fp_to_voter_amount: PositiveFloat
-    author_info: AuthorInfoField
-
-    @property
-    def is_missing(self) -> bool:
-        return not bool(self.slug)
+    total_fp_amount: PositiveFloat
+    author_info: _AuthorInfoField
 
     def to_article_obj(self) -> Article:
         if not self.slug:
-            raise APIUnsupportedError(
+            raise ResourceUnavailableError(
                 f"文章 {article_slug_to_url(self.slug)} 不存在或已被删除 / 私密 / 锁定"
                 if self.slug
                 else "文章不存在或已被删除 / 私密 / 锁定"
@@ -51,13 +53,6 @@ class RecordField(DataObject, frozen=True):
         from jkit.article import Article
 
         return Article.from_slug(self.slug)._as_checked()
-
-
-class ArticleEarningRankingData(DataObject, frozen=True):
-    total_fp_amount_sum: PositiveFloat
-    fp_to_author_amount_sum: PositiveFloat
-    fp_to_voter_amount_sum: PositiveFloat
-    records: tuple[RecordField, ...]
 
 
 class ArticleEarningRanking(ResourceObject):
@@ -72,7 +67,7 @@ class ArticleEarningRanking(ResourceObject):
 
         self._target_date = target_date
 
-    async def get_data(self) -> ArticleEarningRankingData:
+    async def get_summary(self) -> SummaryData:
         data = await send_request(
             datasource="JIANSHU",
             method="GET",
@@ -81,27 +76,31 @@ class ArticleEarningRanking(ResourceObject):
             response_type="JSON",
         )
 
-        return ArticleEarningRankingData(
-            total_fp_amount_sum=normalize_assets_amount(data["fp"]),
+        return SummaryData(
             fp_to_author_amount_sum=normalize_assets_amount(data["author_fp"]),
             fp_to_voter_amount_sum=normalize_assets_amount(data["voter_fp"]),
-            records=tuple(
-                RecordField(
-                    ranking=ranking,
-                    title=item["title"],
-                    slug=item["slug"],
-                    total_fp_amount=normalize_assets_amount(item["fp"]),
-                    fp_to_author_anount=normalize_assets_amount(item["author_fp"]),
-                    fp_to_voter_amount=normalize_assets_amount(item["voter_fp"]),
-                    author_info=AuthorInfoField(
-                        name=item["author_nickname"],
-                        avatar_url=item["author_avatar"],
-                    ),
-                )
-                for ranking, item in enumerate(data["notes"], start=1)
-            ),
+            total_fp_amount_sum=normalize_assets_amount(data["fp"]),
         )._validate()
 
-    async def __aiter__(self) -> AsyncGenerator[RecordField, None]:
-        for item in (await self.get_data()).records:
-            yield item
+    async def iter_records(self) -> AsyncGenerator[RecordData, None]:
+        data = await send_request(
+            datasource="JIANSHU",
+            method="GET",
+            path="/asimov/fp_rankings/voter_notes",
+            body={"date": self._target_date.strftime(r"%Y%m%d")},
+            response_type="JSON",
+        )
+
+        for ranking, item in enumerate(data["notes"], start=1):
+            yield RecordData(
+                ranking=ranking,
+                title=item["title"],
+                slug=item["slug"],
+                total_fp_amount=normalize_assets_amount(item["fp"]),
+                fp_to_author_anount=normalize_assets_amount(item["author_fp"]),
+                fp_to_voter_amount=normalize_assets_amount(item["voter_fp"]),
+                author_info=_AuthorInfoField(
+                    name=item["author_nickname"],
+                    avatar_url=item["author_avatar"],
+                ),
+            )
