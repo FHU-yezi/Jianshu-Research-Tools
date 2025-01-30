@@ -283,7 +283,7 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
     ) -> AsyncGenerator[UserCollectionInfo, None]:
         await self._require_check()
 
-        now_page = start_page
+        current_page = start_page
         while True:
             data = await send_request(
                 datasource="JIANSHU",
@@ -292,7 +292,7 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                 body={
                     "slug": self.slug,
                     "type": "own",
-                    "page": now_page,
+                    "page": current_page,
                     "per_page": page_size,
                 },
                 response_type="JSON",
@@ -308,14 +308,14 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                     image_url=item["avatar"],
                 )._validate()
 
-            now_page += 1
+            current_page += 1
 
     async def iter_managed_collections(
         self, *, start_page: int = 1, page_size: int = 10
     ) -> AsyncGenerator[UserCollectionInfo, None]:
         await self._require_check()
 
-        now_page = start_page
+        current_page = start_page
         while True:
             data = await send_request(
                 datasource="JIANSHU",
@@ -324,7 +324,7 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                 body={
                     "slug": self.slug,
                     "type": "manager",
-                    "page": now_page,
+                    "page": current_page,
                     "per_page": page_size,
                 },
                 response_type="JSON",
@@ -340,14 +340,14 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                     image_url=item["avatar"],
                 )._validate()
 
-            now_page += 1
+            current_page += 1
 
     async def iter_notebooks(
         self, *, start_page: int = 1, page_size: int = 10
     ) -> AsyncGenerator[UserNotebookInfo, None]:
         await self._require_check()
 
-        now_page = start_page
+        current_page = start_page
         while True:
             data = await send_request(
                 datasource="JIANSHU",
@@ -356,7 +356,7 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                 body={
                     "slug": self.slug,
                     "type": "manager",
-                    "page": now_page,
+                    "page": current_page,
                     "per_page": page_size,
                 },
                 response_type="JSON",
@@ -372,7 +372,7 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                     is_paid=item.get("paid_book"),
                 )._validate()
 
-            now_page += 1
+            current_page += 1
 
     async def iter_articles(
         self,
@@ -385,14 +385,14 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
     ) -> AsyncGenerator[UserArticleInfo, None]:
         await self._require_check()
 
-        now_page = start_page
+        current_page = start_page
         while True:
             data = await send_request(
                 datasource="JIANSHU",
                 method="GET",
                 path=f"/asimov/users/slug/{self.slug}/public_notes",
                 body={
-                    "page": now_page,
+                    "page": current_page,
                     "count": page_size,
                     "order_by": {
                         "PUBLISHED_AT": "shared_at",
@@ -435,4 +435,4 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                     ),
                 )._validate()
 
-            now_page += 1
+            current_page += 1

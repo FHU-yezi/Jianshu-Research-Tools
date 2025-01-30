@@ -14,9 +14,7 @@ from jkit.constraints import (
     PositiveInt,
 )
 
-FtnMarketOrderSupportedPaymentChannelsType = Literal[
-    "WECHAT_PAY", "ALIPAY", "ANT_CREDIT_PAY"
-]
+OrderSupportedPaymentChannelsType = Literal["WECHAT_PAY", "ALIPAY", "ANT_CREDIT_PAY"]
 
 
 class _PublisherInfoField(DataObject, frozen=True):
@@ -28,7 +26,7 @@ class _PublisherInfoField(DataObject, frozen=True):
     credit: NonNegativeInt
 
 
-class FtnMacketOrderData(DataObject, frozen=True):
+class OrderData(DataObject, frozen=True):
     id: PositiveInt
 
     price: PositiveFloat
@@ -39,7 +37,7 @@ class FtnMacketOrderData(DataObject, frozen=True):
 
     completed_trades_count: NonNegativeInt
     publish_time: NormalizedDatetime
-    supported_payment_channels: tuple[FtnMarketOrderSupportedPaymentChannelsType, ...]
+    supported_payment_channels: tuple[OrderSupportedPaymentChannelsType, ...]
 
     publisher_info: _PublisherInfoField
 
@@ -50,7 +48,7 @@ class FtnMacket(ResourceObject):
         *,
         type: Literal["BUY", "SELL"],
         start_page: int = 1,
-    ) -> AsyncGenerator[FtnMacketOrderData, None]:
+    ) -> AsyncGenerator[OrderData, None]:
         current_page = start_page
 
         while True:
@@ -90,9 +88,7 @@ class FtnMacket(ResourceObject):
                 break
 
             for item in data["data"]:
-                item_user = item["member.user"][0]
-
-                yield FtnMacketOrderData(
+                yield OrderData(
                     id=item["id"],
                     price=item["price"],
                     total_amount=item["totalNum"],
@@ -108,18 +104,18 @@ class FtnMacket(ResourceObject):
                             2: "ALIPAY",
                             3: "ANT_CREDIT_PAY",
                         }[int(x)]
-                        for x in item_user["pay_types"].split("|")
+                        for x in item["member.user"][0]["pay_types"].split("|")
                     )
-                    if item_user["pay_types"]
+                    if item["member.user"][0]["pay_types"]
                     else (),  # type: ignore
                     publisher_info=_PublisherInfoField(
-                        id=item_user["id"],
-                        name=item_user["username"],
-                        hashed_name=item_user["username_md5"],
-                        avatar_url=item_user["avatarUrl"]
-                        if item_user["avatarUrl"]
+                        id=item["member.user"][0]["id"],
+                        name=item["member.user"][0]["username"],
+                        hashed_name=item["member.user"][0]["username_md5"],
+                        avatar_url=item["member.user"][0]["avatarUrl"]
+                        if item["member.user"][0]["avatarUrl"]
                         else None,
-                        credit=item_user["credit"],
+                        credit=item["member.user"][0]["credit"],
                     ),
                 )._validate()
 

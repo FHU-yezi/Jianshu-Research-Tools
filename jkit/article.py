@@ -351,13 +351,13 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
     ) -> AsyncGenerator[IncludedCollectionInfoData, None]:
         await self._require_check()
 
-        now_page = start_page
+        current_page = start_page
         while True:
             data = await send_request(
                 datasource="JIANSHU",
                 method="GET",
                 path=f"/shakespeare/notes/{await self.id}/included_collections",
-                body={"page": now_page, "count": 20},
+                body={"page": current_page, "count": 20},
                 response_type="JSON",
             )
             if not data["collections"]:
@@ -372,7 +372,7 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                     owner_name=item["owner_name"],
                 )._validate()
 
-            now_page += 1
+            current_page += 1
 
     async def iter_comments(
         self,
@@ -383,14 +383,14 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
     ) -> AsyncGenerator[CommentData, None]:
         await self._require_check()
 
-        now_page = start_page
+        current_page = start_page
         while True:
             data = await send_request(
                 datasource="JIANSHU",
                 method="GET",
                 path=f"/shakespeare/notes/{await self.id}/comments",
                 body={
-                    "page": now_page,
+                    "page": current_page,
                     "order_by": direction.lower(),
                     "author_only": author_only,
                     "count": 20,
@@ -437,7 +437,7 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                     ),
                 )._validate()
 
-            now_page += 1
+            current_page += 1
 
     async def iter_featured_comments(
         self,

@@ -31,7 +31,7 @@ AssetsTransactionType = Literal["INCOME", "EXPENSE"]
 BenefitCardType = Literal["PENDING", "ACTIVE", "EXPIRED"]
 
 
-class AssetsTransactionData(DataObject, frozen=True):
+class TransactionData(DataObject, frozen=True):
     id: PositiveInt
     time: NormalizedDatetime
     type: AssetsTransactionType
@@ -64,13 +64,13 @@ class Assets(ResourceObject):
     def __init__(self, *, credential: JianshuCredential) -> None:
         self._credential = credential
 
-    async def iter_assets_transactions(
+    async def iter_transactions(
         self,
         *,
         type: Literal["FP", "FTN"],
         min_id: int = 0,
         max_id: int | None = None,
-    ) -> AsyncGenerator[AssetsTransactionData, None]:
+    ) -> AsyncGenerator[TransactionData, None]:
         current_max_id = max_id
 
         while True:
@@ -99,7 +99,7 @@ class Assets(ResourceObject):
                 transaction_type: AssetsTransactionType = (
                     "INCOME" if item["io_type"] == 1 else "EXPENSE"
                 )
-                yield AssetsTransactionData(
+                yield TransactionData(
                     id=item["id"],
                     time=normalize_datetime(item["time"]),
                     type=transaction_type,
@@ -164,7 +164,7 @@ class Assets(ResourceObject):
     async def iter_benefit_cards(
         self, *, type: BenefitCardType
     ) -> AsyncGenerator[BenefitCardData, None]:
-        now_page = 1
+        current_page = 1
 
         while True:
             data = await send_request(
@@ -175,7 +175,7 @@ class Assets(ResourceObject):
                     "ACTIVE": "/asimov/fp_wallets/benefit_cards/active",
                     "EXPIRED": "/asimov/fp_wallets/benefit_cards/expire",
                 }[type],
-                params={"page": now_page, "count": 20},
+                params={"page": current_page, "count": 20},
                 cookies=self._credential.cookies,
                 response_type="JSON",
             )
@@ -194,7 +194,7 @@ class Assets(ResourceObject):
                     else None,
                 )._validate()
 
-            now_page += 1
+            current_page += 1
 
     # FIXME: 转换数量为 0
     async def fp_to_ftn(self, amount: int | float, /) -> None:

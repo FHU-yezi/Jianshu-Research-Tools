@@ -169,14 +169,14 @@ class Collection(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin
     ) -> AsyncGenerator[CollectionArticleInfo, None]:
         await self._require_check()
 
-        now_page = start_page
+        current_page = start_page
         while True:
             data = await send_request(
                 datasource="JIANSHU",
                 method="GET",
                 path=f"/asimov/collections/slug/{self.slug}/public_notes",
                 body={
-                    "page": now_page,
+                    "page": current_page,
                     "count": page_size,
                     "ordered_by": {
                         "ADD_TIME": "time",
@@ -218,4 +218,4 @@ class Collection(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin
                     ),
                 )._validate()
 
-            now_page += 1
+            current_page += 1

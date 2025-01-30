@@ -162,14 +162,14 @@ class Notebook(ResourceObject, IdAndUrlResourceMixin, CheckableResourceMixin):
     ) -> AsyncGenerator[NotebookArticleInfo, None]:
         await self._require_check()
 
-        now_page = start_page
+        current_page = start_page
         while True:
             data = await send_request(
                 datasource="JIANSHU",
                 method="GET",
                 path=f"/asimov/notebooks/{self.id}/public_notes",
                 body={
-                    "page": now_page,
+                    "page": current_page,
                     "count": page_size,
                     "order_by": {
                         "ADD_TIME": "added_at",
@@ -211,4 +211,4 @@ class Notebook(ResourceObject, IdAndUrlResourceMixin, CheckableResourceMixin):
                     ),
                 )._validate()
 
-            now_page += 1
+            current_page += 1
