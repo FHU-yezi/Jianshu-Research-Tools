@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
-from enum import Enum
 from re import compile as re_compile
 from typing import (
     TYPE_CHECKING,
@@ -40,56 +39,51 @@ if TYPE_CHECKING:
     from jkit.collection import Collection
     from jkit.notebook import Notebook
 
-ASSETS_AMOUNT_REGEX = re_compile(r"收获喜欢[\s\S]*?<p>(.*)</p>[\s\S]*?总资产")
+_ASSETS_AMOUNT_REGEX = re_compile(r"收获喜欢[\s\S]*?<p>(.*)</p>[\s\S]*?总资产")
+
+MembershipType = Literal[
+    "NONE",
+    "BRONZE",
+    "SILVER",
+    "GOLD",
+    "PLATINA",
+    "LEGACY_ORDINARY",
+    "LEGACY_DISTINGUISHED",
+]
+GenderType = Literal["UNKNOWN", "MALE", "FEMALE"]
 
 
-class UserBadge(DataObject, frozen=True):
+class _BadgeField(DataObject, frozen=True):
     name: NonEmptyStr
-    introduction_url: str
+    introduction_url: NonEmptyStr
     image_url: NonEmptyStr
 
 
-class MembershipEnum(Enum):
-    NONE = "无会员"
-    BRONZE = "铜牌会员"
-    SILVER = "银牌会员"
-    GOLD = "金牌会员"
-    PLATINA = "白金会员"
-    LEGACY_ORDINARY = "普通会员（旧版）"
-    LEGACY_DISTINGUISHED = "尊享会员（旧版）"
-
-
-class GenderEnum(Enum):
-    UNKNOWN = "未知"
-    MALE = "男"
-    FEMALE = "女"
-
-
-class MembershipInfoField(DataObject, frozen=True):
-    type: MembershipEnum
+class _MembershipInfoField(DataObject, frozen=True):
+    type: MembershipType
     expired_at: NormalizedDatetime | None
 
 
-class UserInfo(DataObject, frozen=True):
+class InfoData(DataObject, frozen=True):
     id: PositiveInt
+    slug: UserSlug
     name: UserName
-    gender: GenderEnum
+    gender: GenderType
     introduction: str
-    introduction_updated_at: NormalizedDatetime
+    introduction_update_time: NormalizedDatetime
     avatar_url: UserUploadedUrl
     background_image_url: UserUploadedUrl | None
-    badges: tuple[UserBadge, ...]
-    membership_info: MembershipInfoField
+    badges: tuple[_BadgeField, ...]
+    membership_info: _MembershipInfoField
     address_by_ip: NonEmptyStr
 
     followers_count: NonNegativeInt
     fans_count: NonNegativeInt
     total_wordage: NonNegativeInt
     total_likes_count: NonNegativeInt
-    fp_amount: NonNegativeFloat
 
 
-class UserCollectionInfo(DataObject, frozen=True):
+class CollectionData(DataObject, frozen=True):
     id: PositiveInt
     slug: CollectionSlug
     name: NonEmptyStr
@@ -101,7 +95,7 @@ class UserCollectionInfo(DataObject, frozen=True):
         return Collection.from_slug(self.slug)._as_checked()
 
 
-class UserNotebookInfo(DataObject, frozen=True):
+class NotebookData(DataObject, frozen=True):
     id: PositiveInt
     name: NonEmptyStr
     is_serial: bool
@@ -110,10 +104,10 @@ class UserNotebookInfo(DataObject, frozen=True):
     def to_notebook_obj(self) -> Notebook:
         from jkit.notebook import Notebook
 
-        return Notebook.from_id(self.id)
+        return Notebook.from_id(self.id)._as_checked()
 
 
-class ArticleAuthorInfoField(DataObject, frozen=True):
+class _ArticleAuthorInfoField(DataObject, frozen=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -125,17 +119,17 @@ class ArticleAuthorInfoField(DataObject, frozen=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class UserArticleInfo(DataObject, frozen=True):
+class ArticleData(DataObject, frozen=True):
     id: PositiveInt
     slug: ArticleSlug
     title: NonEmptyStr
     description: str
     image_url: UserUploadedUrl | None
-    published_at: NormalizedDatetime
+    publish_time: NormalizedDatetime
     is_top: bool
     is_paid: bool
     can_comment: bool
-    author_info: ArticleAuthorInfoField
+    author_info: _ArticleAuthorInfoField
 
     views_count: NonNegativeInt
     likes_count: NonNegativeInt
@@ -188,7 +182,7 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
         return (await self.info).id
 
     @property
-    async def info(self) -> UserInfo:
+    async def info(self) -> InfoData:
         await self._require_check()
 
         data = await send_request(
@@ -198,43 +192,46 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
             response_type="JSON",
         )
 
-        return UserInfo(
+        return InfoData(
             id=data["id"],
+            slug=data["slug"],
             name=data["nickname"],
+            # TODO: 优化类型检查
             gender={
-                0: GenderEnum.UNKNOWN,
-                1: GenderEnum.MALE,
-                2: GenderEnum.FEMALE,
-                3: GenderEnum.UNKNOWN,
-            }[data["gender"]],
+                0: "UNKNOWN",
+                1: "MALE",
+                2: "FEMALE",
+                3: "UNKNOWN",
+            }[data["gender"]],  # type: ignore
             introduction=data["intro"],
-            introduction_updated_at=normalize_datetime(data["last_updated_at"]),
+            introduction_update_time=normalize_datetime(data["last_updated_at"]),
             avatar_url=data["avatar"],
             background_image_url=data["background_image"]
             if data.get("background_image")
             else None,
             badges=tuple(
-                UserBadge(
+                _BadgeField(
                     name=badge["text"],
                     introduction_url=badge["intro_url"],
                     image_url=badge["image_url"],
                 )
                 for badge in data["badges"]
             ),
-            membership_info=MembershipInfoField(
+            membership_info=_MembershipInfoField(
+                # TODO: 优化类型检查
                 type={
-                    "bronze": MembershipEnum.BRONZE,
-                    "silver": MembershipEnum.SILVER,
-                    "gold": MembershipEnum.GOLD,
-                    "platina": MembershipEnum.PLATINA,
-                    "ordinary": MembershipEnum.LEGACY_ORDINARY,
-                    "distinguished": MembershipEnum.LEGACY_DISTINGUISHED,
-                }[data["member"]["type"]],
+                    "bronze": "BRONZE",
+                    "silver": "SILVER",
+                    "gold": "GOLD",
+                    "platina": "PLATINA",
+                    "ordinary": "LEGACY_ORDINARY",
+                    "distinguished": "LEGACY_DISTINGUISHED",
+                }[data["member"]["type"]],  # type: ignore
                 expired_at=normalize_datetime(data["member"]["expires_at"]),
             )
             if data.get("member")
-            else MembershipInfoField(
-                type=MembershipEnum.NONE,
+            else _MembershipInfoField(
+                type="NONE",
                 expired_at=None,
             ),
             address_by_ip=data["user_ip_addr"],
@@ -242,12 +239,17 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
             fans_count=data["followers_count"],
             total_wordage=data["total_wordage"],
             total_likes_count=data["total_likes_count"],
-            fp_amount=normalize_assets_amount(data["jsd_balance"]),
         )._validate()
 
     @property
     async def assets_info(self) -> tuple[float, float | None, float | None]:
-        fp_amount = (await self.info).fp_amount
+        fp_amount_data = await send_request(
+            datasource="JIANSHU",
+            method="GET",
+            path=f"/asimov/users/slug/{self.slug}",
+            response_type="JSON",
+        )
+        fp_amount = normalize_assets_amount(fp_amount_data["jsd_balance"])
 
         assets_amount_data = await send_request(
             datasource="JIANSHU",
@@ -257,7 +259,7 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
         )
         try:
             assets_amount = float(
-                ASSETS_AMOUNT_REGEX.findall(assets_amount_data)[0]
+                _ASSETS_AMOUNT_REGEX.findall(assets_amount_data)[0]
                 .replace(".", "")
                 .replace("w", "000")
             )
@@ -278,9 +280,14 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
 
             return (fp_amount, ftn_amount, assets_amount)
 
-    async def iter_owned_collections(
-        self, *, start_page: int = 1, page_size: int = 10
-    ) -> AsyncGenerator[UserCollectionInfo, None]:
+    async def iter_articles(
+        self,
+        *,
+        start_page: int = 1,
+        order_by: Literal[
+            "PUBLISH_TIME", "LAST_COMMENT_TIME", "POPULARITY"
+        ] = "PUBLISH_TIME",
+    ) -> AsyncGenerator[ArticleData, None]:
         await self._require_check()
 
         current_page = start_page
@@ -288,63 +295,54 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
             data = await send_request(
                 datasource="JIANSHU",
                 method="GET",
-                path=f"/users/{self.slug}/collections",
+                path=f"/asimov/users/slug/{self.slug}/public_notes",
                 body={
-                    "slug": self.slug,
-                    "type": "own",
                     "page": current_page,
-                    "per_page": page_size,
+                    "count": 20,
+                    "order_by": {
+                        "PUBLISH_TIME": "shared_at",
+                        "LAST_COMMENT_TIME": "commented_at",
+                        "POPULARITY": "top",
+                    }[order_by],
                 },
-                response_type="JSON",
+                response_type="JSON_LIST",
             )
-            if not data["collections"]:
+            if not data:
                 return
 
-            for item in data["collections"]:
-                yield UserCollectionInfo(
+            for item in data:
+                item = item["object"]["data"]  # noqa: PLW2901
+
+                yield ArticleData(
                     id=item["id"],
                     slug=item["slug"],
-                    name=item["title"],
-                    image_url=item["avatar"],
-                )._validate()
-
-            current_page += 1
-
-    async def iter_managed_collections(
-        self, *, start_page: int = 1, page_size: int = 10
-    ) -> AsyncGenerator[UserCollectionInfo, None]:
-        await self._require_check()
-
-        current_page = start_page
-        while True:
-            data = await send_request(
-                datasource="JIANSHU",
-                method="GET",
-                path=f"/users/{self.slug}/collections",
-                body={
-                    "slug": self.slug,
-                    "type": "manager",
-                    "page": current_page,
-                    "per_page": page_size,
-                },
-                response_type="JSON",
-            )
-            if not data["collections"]:
-                return
-
-            for item in data["collections"]:
-                yield UserCollectionInfo(
-                    id=item["id"],
-                    slug=item["slug"],
-                    name=item["title"],
-                    image_url=item["avatar"],
+                    title=item["title"],
+                    description=item["public_abbr"],
+                    image_url=item["list_image_url"]
+                    if item["list_image_url"]
+                    else None,
+                    publish_time=normalize_datetime(item["first_shared_at"]),
+                    is_top=item["is_top"],
+                    is_paid=item["paid"],
+                    can_comment=item["commentable"],
+                    author_info=_ArticleAuthorInfoField(
+                        id=item["user"]["id"],
+                        slug=item["user"]["slug"],
+                        name=item["user"]["nickname"],
+                        avatar_url=item["user"]["avatar"],
+                    ),
+                    views_count=item["views_count"],
+                    likes_count=item["likes_count"],
+                    comments_count=item["public_comments_count"],
+                    tips_count=item["total_rewards_count"],
+                    earned_fp_amount=normalize_assets_amount(item["total_fp_amount"]),
                 )._validate()
 
             current_page += 1
 
     async def iter_notebooks(
-        self, *, start_page: int = 1, page_size: int = 10
-    ) -> AsyncGenerator[UserNotebookInfo, None]:
+        self, *, start_page: int = 1
+    ) -> AsyncGenerator[NotebookData, None]:
         await self._require_check()
 
         current_page = start_page
@@ -357,7 +355,7 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                     "slug": self.slug,
                     "type": "manager",
                     "page": current_page,
-                    "per_page": page_size,
+                    "per_page": 20,
                 },
                 response_type="JSON",
             )
@@ -365,7 +363,8 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                 return
 
             for item in data["notebooks"]:
-                yield UserNotebookInfo(
+                # TODO: 增加更多字段
+                yield NotebookData(
                     id=item["id"],
                     name=item["name"],
                     is_serial=item["book"],
@@ -374,15 +373,12 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
 
             current_page += 1
 
-    async def iter_articles(
+    async def iter_collections(
         self,
         *,
+        type: Literal["OWNED", "MANAGED"],
         start_page: int = 1,
-        order_by: Literal[
-            "PUBLISHED_AT", "LAST_COMMENT_TIME", "POPULARITY"
-        ] = "PUBLISHED_AT",
-        page_size: int = 10,
-    ) -> AsyncGenerator[UserArticleInfo, None]:
+    ) -> AsyncGenerator[CollectionData, None]:
         await self._require_check()
 
         current_page = start_page
@@ -390,49 +386,24 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
             data = await send_request(
                 datasource="JIANSHU",
                 method="GET",
-                path=f"/asimov/users/slug/{self.slug}/public_notes",
+                path=f"/users/{self.slug}/collections",
                 body={
+                    "slug": self.slug,
+                    "type": {"OWNED": "own", "MANAGED": "manager"}[type],
                     "page": current_page,
-                    "count": page_size,
-                    "order_by": {
-                        "PUBLISHED_AT": "shared_at",
-                        "LAST_COMMENT_TIME": "commented_at",
-                        "POPULARITY": "top",
-                    }[order_by],
+                    "per_page": 20,
                 },
-                response_type="JSON_LIST",
+                response_type="JSON",
             )
-            if not data:
+            if not data["collections"]:
                 return
 
-            for item in data:
-                yield UserArticleInfo(
-                    id=item["object"]["data"]["id"],
-                    slug=item["object"]["data"]["slug"],
-                    title=item["object"]["data"]["title"],
-                    description=item["object"]["data"]["public_abbr"],
-                    image_url=item["object"]["data"]["list_image_url"]
-                    if item["object"]["data"]["list_image_url"]
-                    else None,
-                    published_at=normalize_datetime(
-                        item["object"]["data"]["first_shared_at"]
-                    ),
-                    is_top=item["object"]["data"]["is_top"],
-                    is_paid=item["object"]["data"]["paid"],
-                    can_comment=item["object"]["data"]["commentable"],
-                    author_info=ArticleAuthorInfoField(
-                        id=item["object"]["data"]["user"]["id"],
-                        slug=item["object"]["data"]["user"]["slug"],
-                        name=item["object"]["data"]["user"]["nickname"],
-                        avatar_url=item["object"]["data"]["user"]["avatar"],
-                    ),
-                    views_count=item["object"]["data"]["views_count"],
-                    likes_count=item["object"]["data"]["likes_count"],
-                    comments_count=item["object"]["data"]["public_comments_count"],
-                    tips_count=item["object"]["data"]["total_rewards_count"],
-                    earned_fp_amount=normalize_assets_amount(
-                        item["object"]["data"]["total_fp_amount"]
-                    ),
+            for item in data["collections"]:
+                yield CollectionData(
+                    id=item["id"],
+                    slug=item["slug"],
+                    name=item["title"],
+                    image_url=item["avatar"],
                 )._validate()
 
             current_page += 1
