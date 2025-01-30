@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 T = TypeVar("T", bound="Notebook")
 
 
-class AuthorInfoField(DataObject, frozen=True):
+class _AuthorInfoField(DataObject, frozen=True):
     slug: UserSlug
     name: UserName
     avatar_url: UserUploadedUrl
@@ -48,18 +48,18 @@ class AuthorInfoField(DataObject, frozen=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class NotebookInfo(DataObject, frozen=True):
+class InfoData(DataObject, frozen=True):
     id: NotebookId
     name: NonEmptyStr
-    description_updated_at: NormalizedDatetime
-    author_info: AuthorInfoField
+    description_update_time: NormalizedDatetime
+    author_info: _AuthorInfoField
 
     articles_count: NonNegativeInt
     subscribers_count: NonNegativeInt
     total_wordage: NonNegativeInt
 
 
-class ArticleAuthorInfoField(DataObject, frozen=True):
+class _ArticleAuthorInfoField(DataObject, frozen=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -71,7 +71,7 @@ class ArticleAuthorInfoField(DataObject, frozen=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class NotebookArticleInfo(DataObject, frozen=True):
+class ArticleData(DataObject, frozen=True):
     id: PositiveInt
     slug: ArticleSlug
     title: NonEmptyStr
@@ -80,7 +80,7 @@ class NotebookArticleInfo(DataObject, frozen=True):
     published_at: NormalizedDatetime
     is_paid: bool
     can_comment: bool
-    author_info: ArticleAuthorInfoField
+    author_info: _ArticleAuthorInfoField
 
     views_count: NonNegativeInt
     likes_count: NonNegativeInt
@@ -129,7 +129,7 @@ class Notebook(ResourceObject, IdAndUrlResourceMixin, CheckableResourceMixin):
             self._checked = True
 
     @property
-    async def info(self) -> NotebookInfo:
+    async def info(self) -> InfoData:
         await self._require_check()
 
         data = await send_request(
@@ -139,11 +139,11 @@ class Notebook(ResourceObject, IdAndUrlResourceMixin, CheckableResourceMixin):
             response_type="JSON",
         )
 
-        return NotebookInfo(
+        return InfoData(
             id=data["id"],
             name=data["name"],
-            description_updated_at=normalize_datetime(data["last_updated_at"]),
-            author_info=AuthorInfoField(
+            description_update_time=normalize_datetime(data["last_updated_at"]),
+            author_info=_AuthorInfoField(
                 slug=data["user"]["slug"],
                 name=data["user"]["nickname"],
                 avatar_url=data["user"]["avatar"],
@@ -158,8 +158,7 @@ class Notebook(ResourceObject, IdAndUrlResourceMixin, CheckableResourceMixin):
         *,
         start_page: int = 1,
         order_by: Literal["ADD_TIME", "LAST_COMMENT_TIME"] = "ADD_TIME",
-        page_size: int = 20,
-    ) -> AsyncGenerator[NotebookArticleInfo, None]:
+    ) -> AsyncGenerator[ArticleData, None]:
         await self._require_check()
 
         current_page = start_page
@@ -170,7 +169,7 @@ class Notebook(ResourceObject, IdAndUrlResourceMixin, CheckableResourceMixin):
                 path=f"/asimov/notebooks/{self.id}/public_notes",
                 body={
                     "page": current_page,
-                    "count": page_size,
+                    "count": 20,
                     "order_by": {
                         "ADD_TIME": "added_at",
                         "LAST_COMMENT_TIME": "commented_at",
@@ -183,32 +182,30 @@ class Notebook(ResourceObject, IdAndUrlResourceMixin, CheckableResourceMixin):
                 return
 
             for item in data:
-                yield NotebookArticleInfo(
-                    id=item["object"]["data"]["id"],
-                    slug=item["object"]["data"]["slug"],
-                    title=item["object"]["data"]["title"],
-                    description=item["object"]["data"]["public_abbr"],
-                    image_url=item["object"]["data"]["list_image_url"]
-                    if item["object"]["data"]["list_image_url"]
+                item = item["object"]["data"]  # noqa: PLW2901
+
+                yield ArticleData(
+                    id=item["id"],
+                    slug=item["slug"],
+                    title=item["title"],
+                    description=item["public_abbr"],
+                    image_url=item["list_image_url"]
+                    if item["list_image_url"]
                     else None,
-                    published_at=normalize_datetime(
-                        item["object"]["data"]["first_shared_at"]
+                    published_at=normalize_datetime(item["first_shared_at"]),
+                    is_paid=item["paid"],
+                    can_comment=item["commentable"],
+                    author_info=_ArticleAuthorInfoField(
+                        id=item["user"]["id"],
+                        slug=item["user"]["slug"],
+                        name=item["user"]["nickname"],
+                        avatar_url=item["user"]["avatar"],
                     ),
-                    is_paid=item["object"]["data"]["paid"],
-                    can_comment=item["object"]["data"]["commentable"],
-                    author_info=ArticleAuthorInfoField(
-                        id=item["object"]["data"]["user"]["id"],
-                        slug=item["object"]["data"]["user"]["slug"],
-                        name=item["object"]["data"]["user"]["nickname"],
-                        avatar_url=item["object"]["data"]["user"]["avatar"],
-                    ),
-                    views_count=item["object"]["data"]["views_count"],
-                    likes_count=item["object"]["data"]["likes_count"],
-                    comments_count=item["object"]["data"]["public_comments_count"],
-                    tips_count=item["object"]["data"]["total_rewards_count"],
-                    earned_fp_amount=normalize_assets_amount(
-                        item["object"]["data"]["total_fp_amount"]
-                    ),
+                    views_count=item["views_count"],
+                    likes_count=item["likes_count"],
+                    comments_count=item["public_comments_count"],
+                    tips_count=item["total_rewards_count"],
+                    earned_fp_amount=normalize_assets_amount(item["total_fp_amount"]),
                 )._validate()
 
             current_page += 1
