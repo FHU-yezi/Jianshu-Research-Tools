@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 from datetime import datetime
-from enum import Enum
 from typing import (
     TYPE_CHECKING,
     Literal,
@@ -50,25 +49,18 @@ if TYPE_CHECKING:
     from jkit.user import User
 
 
-class NotebookPaidStatusEnum(Enum):
-    FREE = "免费"
-    PAID = "付费"
+PaidType = Literal["FREE", "PAID"]
 
 
-class ArticlePaidStatusEnum(Enum):
-    FREE = "免费"
-    PAID = "付费"
-
-
-class PaidInfoField(DataObject, frozen=True):
-    notebook_paid_status: NotebookPaidStatusEnum | None
-    article_paid_status: ArticlePaidStatusEnum
+class _PaidInfoField(DataObject, frozen=True):
+    notebook_paid_type: PaidType | None
+    article_paid_type: PaidType
     price: PositiveFloat | None
     paid_cotent_percent: Percentage | None
     paid_readers_count: NonNegativeInt | None
 
 
-class AuthorInfoField(DataObject, frozen=True):
+class _AuthorInfoField(DataObject, frozen=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -85,19 +77,19 @@ class AuthorInfoField(DataObject, frozen=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class ArticleInfo(DataObject, frozen=True):
+class InfoData(DataObject, frozen=True):
     id: PositiveInt
     notebook_id: PositiveInt
     title: NonEmptyStr
     description: str
     wordage: NonNegativeInt
-    published_at: NormalizedDatetime
-    updated_at: NormalizedDatetime
+    published_time: NormalizedDatetime
+    updated_time: NormalizedDatetime
     can_comment: bool
     can_reprint: bool
-    paid_info: PaidInfoField
-    author_info: AuthorInfoField
-    html_content: NonEmptyStr
+    paid_info: _PaidInfoField
+    author_info: _AuthorInfoField
+    content_html: NonEmptyStr
 
     likes_count: NonNegativeInt
     comments_count: NonNegativeInt
@@ -105,12 +97,12 @@ class ArticleInfo(DataObject, frozen=True):
     earned_fp_amount: NonNegativeFloat
 
     @property
-    def text_content(self) -> str:
-        result = _HTML_TAG_REGEX.sub("", self.html_content)
+    def content_text(self) -> str:
+        result = _HTML_TAG_REGEX.sub("", self.content_html)
         return _BLANK_LINES_REGEX.sub("\n", result)
 
 
-class ArticleAudioInfo(DataObject, frozen=True):
+class AudioInfoData(DataObject, frozen=True):
     id: PositiveInt
     name: NonEmptyStr
     producer: NonEmptyStr
@@ -125,13 +117,24 @@ class ArticleAudioInfo(DataObject, frozen=True):
         )
 
     @property
-    def is_file_expired(self) -> bool:
+    def is_file_url_expired(self) -> bool:
         return self.file_url_expire_time >= datetime.now()
 
 
-class ArticleIncludedCollectionInfo(DataObject, frozen=True):
+class BelongedNotebookInfoData(DataObject, frozen=True):
+    id: PositiveInt
+    name: NonEmptyStr
+
+    def to_notebook_obj(self) -> Notebook:
+        from jkit.notebook import Notebook
+
+        return Notebook.from_id(self.id)._as_checked()
+
+
+class IncludedCollectionInfoData(DataObject, frozen=True):
     id: PositiveInt
     slug: CollectionSlug
+    # TODO: 优化专题全名获取方式
     name: NonEmptyStr
     image_url: UserUploadedUrl
     owner_name: UserName
@@ -149,17 +152,7 @@ class ArticleIncludedCollectionInfo(DataObject, frozen=True):
         return (await self.to_collection_obj().info).name
 
 
-class ArticleBelongToNotebookInfo(DataObject, frozen=True):
-    id: PositiveInt
-    name: NonEmptyStr
-
-    def to_notebook_obj(self) -> Notebook:
-        from jkit.notebook import Notebook
-
-        return Notebook.from_id(self.id)
-
-
-class CommentPublisherInfoField(DataObject, frozen=True):
+class _CommentPublisherInfoField(DataObject, frozen=True):
     id: PositiveInt
     slug: UserSlug
     name: UserName
@@ -173,33 +166,27 @@ class CommentPublisherInfoField(DataObject, frozen=True):
         return User.from_slug(self.slug)._as_checked()
 
 
-class ArticleSubcommentInfo(DataObject, frozen=True):
+class SubcommentData(DataObject, frozen=True):
     id: PositiveInt
+    # TODO: 解析并转换 @ 其它用户的 HTML 标签
     content: str
     images: tuple[UserUploadedUrl, ...]
-    published_at: NormalizedDatetime
-    publisher_info: CommentPublisherInfoField
+    publish_time: NormalizedDatetime
+    publisher_info: _CommentPublisherInfoField
 
 
-class ArticleCommentInfo(DataObject, frozen=True):
-    id: PositiveInt
+class CommentData(SubcommentData, frozen=True):
     floor: PositiveInt
-    content: str
-    images: tuple[UserUploadedUrl, ...]
     likes_count: NonNegativeInt
-    published_at: NormalizedDatetime
-    publisher_info: CommentPublisherInfoField
 
-    subcomments: tuple[ArticleSubcommentInfo, ...]
+    subcomments: tuple[SubcommentData, ...]
 
     @property
     def has_subcomment(self) -> bool:
         return bool(self.subcomments)
 
 
-class ArticleFeaturedCommentInfo(
-    ArticleCommentInfo, frozen=True, eq=True, kw_only=True
-):
+class FeaturedCommentData(CommentData, frozen=True):
     score: PositiveInt
 
 
@@ -242,7 +229,7 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
         return (await self.info).id
 
     @property
-    async def info(self) -> ArticleInfo:
+    async def info(self) -> InfoData:
         await self._require_check()
 
         data = await send_request(
@@ -252,33 +239,34 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
             response_type="JSON",
         )
 
-        return ArticleInfo(
+        return InfoData(
             id=data["id"],
             notebook_id=data["notebook_id"],
             title=data["public_title"],
             description=data["description"],
             wordage=data["wordage"],
-            published_at=normalize_datetime(data["first_shared_at"]),
-            updated_at=normalize_datetime(data["last_updated_at"]),
+            published_time=normalize_datetime(data["first_shared_at"]),
+            updated_time=normalize_datetime(data["last_updated_at"]),
             can_comment=data["commentable"],
             can_reprint=data["reprintable"],
-            paid_info=PaidInfoField(
-                notebook_paid_status={
+            paid_info=_PaidInfoField(
+                notebook_paid_type={
                     "free": None,  # 免费文章
-                    "fbook_free": NotebookPaidStatusEnum.FREE,  # 免费连载中的免费文章
-                    "pbook_free": NotebookPaidStatusEnum.PAID,  # 付费连载中的免费文章
+                    "fbook_free": "FREE",  # 免费连载中的免费文章
+                    "pbook_free": "PAID",  # 付费连载中的免费文章
                     "paid": None,  # 付费文章
-                    "fbook_paid": NotebookPaidStatusEnum.FREE,  # 免费连载中的付费文章
-                    "pbook_paid": NotebookPaidStatusEnum.PAID,  # 付费连载中的付费文章
+                    "fbook_paid": "FREE",  # 免费连载中的付费文章
+                    "pbook_paid": "PAID",  # 付费连载中的付费文章
                 }[data["paid_type"]],
-                article_paid_status={
-                    "free": ArticlePaidStatusEnum.FREE,  # 免费文章
-                    "fbook_free": ArticlePaidStatusEnum.FREE,  # 免费连载中的免费文章
-                    "pbook_free": ArticlePaidStatusEnum.FREE,  # 付费连载中的免费文章
-                    "paid": ArticlePaidStatusEnum.PAID,  # 付费文章
-                    "fbook_paid": ArticlePaidStatusEnum.PAID,  # 免费连载中的付费文章
-                    "pbook_paid": ArticlePaidStatusEnum.PAID,  # 付费连载中的付费文章
-                }[data["paid_type"]],
+                # TODO: 优化类型检查
+                article_paid_type={
+                    "free": "FREE",  # 免费文章
+                    "fbook_free": "FREE",  # 免费连载中的免费文章
+                    "pbook_free": "FREE",  # 付费连载中的免费文章
+                    "paid": "PAID",  # 付费文章
+                    "fbook_paid": "PAID",  # 免费连载中的付费文章
+                    "pbook_paid": "PAID",  # 付费连载中的付费文章
+                }[data["paid_type"]],  # type: ignore
                 price=float(data["retail_price"]) / 100
                 if data.get("retail_price")
                 else None,
@@ -289,7 +277,7 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                 else None,
                 paid_readers_count=data.get("purchased_count"),
             ),
-            author_info=AuthorInfoField(
+            author_info=_AuthorInfoField(
                 id=data["user"]["id"],
                 slug=data["user"]["slug"],
                 name=data["user"]["nickname"],
@@ -299,7 +287,7 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                 total_wordage=data["user"]["wordage"],
                 total_likes_count=data["user"]["likes_count"],
             ),
-            html_content=data["free_content"],
+            content_html=data["free_content"],
             likes_count=data["likes_count"],
             comments_count=data["public_comment_count"],
             featured_comments_count=data["featured_comments_count"],
@@ -320,7 +308,7 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
         return data["views_count"]
 
     @property
-    async def audio_info(self) -> ArticleAudioInfo | None:
+    async def audio_info(self) -> AudioInfoData | None:
         await self._require_check()
 
         data = await send_request(
@@ -333,7 +321,7 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
         if not data["exists"]:
             return None
 
-        return ArticleAudioInfo(
+        return AudioInfoData(
             id=data["id"],
             name=data["title"],
             producer=data["dubber"],
@@ -343,7 +331,7 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
         )._validate()
 
     @property
-    async def belong_to_notebook(self) -> ArticleBelongToNotebookInfo:
+    async def belonged_notebook_info(self) -> BelongedNotebookInfoData:
         await self._require_check()
 
         data = await send_request(
@@ -353,14 +341,14 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
             response_type="JSON",
         )
 
-        return ArticleBelongToNotebookInfo(
+        return BelongedNotebookInfoData(
             id=data["notebook_id"],
             name=data["notebook_name"],
         )._validate()
 
     async def iter_included_collections(
-        self, *, start_page: int = 1, page_size: int = 10
-    ) -> AsyncGenerator[ArticleIncludedCollectionInfo, None]:
+        self, *, start_page: int = 1
+    ) -> AsyncGenerator[IncludedCollectionInfoData, None]:
         await self._require_check()
 
         now_page = start_page
@@ -369,14 +357,14 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                 datasource="JIANSHU",
                 method="GET",
                 path=f"/shakespeare/notes/{await self.id}/included_collections",
-                body={"page": now_page, "count": page_size},
+                body={"page": now_page, "count": 20},
                 response_type="JSON",
             )
             if not data["collections"]:
                 return
 
             for item in data["collections"]:
-                yield ArticleIncludedCollectionInfo(
+                yield IncludedCollectionInfoData(
                     id=item["id"],
                     slug=item["slug"],
                     name=item["title"],
@@ -392,8 +380,7 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
         start_page: int = 1,
         direction: Literal["ASC", "DESC"] = "DESC",
         author_only: bool = False,
-        page_size: int = 10,
-    ) -> AsyncGenerator[ArticleCommentInfo, None]:
+    ) -> AsyncGenerator[CommentData, None]:
         await self._require_check()
 
         now_page = start_page
@@ -406,7 +393,7 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                     "page": now_page,
                     "order_by": direction.lower(),
                     "author_only": author_only,
-                    "count": page_size,
+                    "count": 20,
                 },
                 response_type="JSON",
             )
@@ -414,7 +401,7 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                 return
 
             for item in data["comments"]:
-                yield ArticleCommentInfo(
+                yield CommentData(
                     id=item["id"],
                     floor=item["floor"],
                     content=item["compiled_content"],
@@ -422,8 +409,8 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                     if item["images"]
                     else (),
                     likes_count=item["likes_count"],
-                    published_at=normalize_datetime(item["created_at"]),
-                    publisher_info=CommentPublisherInfoField(
+                    publish_time=normalize_datetime(item["created_at"]),
+                    publisher_info=_CommentPublisherInfoField(
                         id=item["user"]["id"],
                         slug=item["user"]["slug"],
                         name=item["user"]["nickname"],
@@ -431,14 +418,14 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                         address_by_ip=item["user"]["user_ip_addr"],
                     ),
                     subcomments=tuple(
-                        ArticleSubcommentInfo(
+                        SubcommentData(
                             id=subcomment["id"],
                             content=subcomment["compiled_content"],
                             images=tuple(image["url"] for image in subcomment["images"])
                             if subcomment["images"]
                             else (),
-                            published_at=normalize_datetime(subcomment["created_at"]),
-                            publisher_info=CommentPublisherInfoField(
+                            publish_time=normalize_datetime(subcomment["created_at"]),
+                            publisher_info=_CommentPublisherInfoField(
                                 id=subcomment["user"]["id"],
                                 slug=subcomment["user"]["slug"],
                                 name=subcomment["user"]["nickname"],
@@ -456,7 +443,7 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
         self,
         *,
         count: int = 10,
-    ) -> AsyncGenerator[ArticleFeaturedCommentInfo, None]:
+    ) -> AsyncGenerator[FeaturedCommentData, None]:
         await self._require_check()
 
         data = await send_request(
@@ -470,7 +457,7 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
         )
 
         for item in data:
-            yield ArticleFeaturedCommentInfo(
+            yield FeaturedCommentData(
                 id=item["id"],
                 floor=item["floor"],
                 content=item["compiled_content"],
@@ -478,8 +465,8 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                 if item["images"]
                 else (),
                 likes_count=item["likes_count"],
-                published_at=normalize_datetime(item["created_at"]),
-                publisher_info=CommentPublisherInfoField(
+                publish_time=normalize_datetime(item["created_at"]),
+                publisher_info=_CommentPublisherInfoField(
                     id=item["user"]["id"],
                     slug=item["user"]["slug"],
                     name=item["user"]["nickname"],
@@ -487,14 +474,14 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                     address_by_ip=item["user"]["user_ip_addr"],
                 ),
                 subcomments=tuple(
-                    ArticleSubcommentInfo(
+                    SubcommentData(
                         id=subcomment["id"],
                         content=subcomment["compiled_content"],
                         images=tuple(image["url"] for image in subcomment["images"])
                         if subcomment["images"]
                         else (),
-                        published_at=normalize_datetime(subcomment["created_at"]),
-                        publisher_info=CommentPublisherInfoField(
+                        publish_time=normalize_datetime(subcomment["created_at"]),
+                        publisher_info=_CommentPublisherInfoField(
                             id=subcomment["user"]["id"],
                             slug=subcomment["user"]["slug"],
                             name=subcomment["user"]["nickname"],
