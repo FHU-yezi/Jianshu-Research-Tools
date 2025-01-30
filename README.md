@@ -31,7 +31,7 @@ pip install jkit --pre
 ```python
 import asyncio
 
-from jkit import User
+from jkit.user import User
 
 
 async def main() -> None:
@@ -41,7 +41,7 @@ async def main() -> None:
     print(f"用户昵称：{info.name}")
     print(
         f"性别：{info.gender.value}，会员等级：{info.membership_info.type.value}\n"
-        f"会员过期时间：{info.membership_info.expired_at}"
+        f"会员过期时间：{info.membership_info.expire_time}"
     )
 
 

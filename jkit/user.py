@@ -61,7 +61,7 @@ class _BadgeField(DataObject, frozen=True):
 
 class _MembershipInfoField(DataObject, frozen=True):
     type: MembershipType
-    expired_at: NormalizedDatetime | None
+    expire_time: NormalizedDatetime | None
 
 
 class InfoData(DataObject, frozen=True):
@@ -227,12 +227,12 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                     "ordinary": "LEGACY_ORDINARY",
                     "distinguished": "LEGACY_DISTINGUISHED",
                 }[data["member"]["type"]],  # type: ignore
-                expired_at=normalize_datetime(data["member"]["expires_at"]),
+                expire_time=normalize_datetime(data["member"]["expires_at"]),
             )
             if data.get("member")
             else _MembershipInfoField(
                 type="NONE",
-                expired_at=None,
+                expire_time=None,
             ),
             address_by_ip=data["user_ip_addr"],
             followers_count=data["following_users_count"],

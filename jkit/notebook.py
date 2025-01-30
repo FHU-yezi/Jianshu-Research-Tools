@@ -77,7 +77,7 @@ class ArticleData(DataObject, frozen=True):
     title: NonEmptyStr
     description: str
     image_url: UserUploadedUrl | None
-    published_at: NormalizedDatetime
+    publish_time: NormalizedDatetime
     is_paid: bool
     can_comment: bool
     author_info: _ArticleAuthorInfoField
@@ -192,7 +192,7 @@ class Notebook(ResourceObject, IdAndUrlResourceMixin, CheckableResourceMixin):
                     image_url=item["list_image_url"]
                     if item["list_image_url"]
                     else None,
-                    published_at=normalize_datetime(item["first_shared_at"]),
+                    publish_time=normalize_datetime(item["first_shared_at"]),
                     is_paid=item["paid"],
                     can_comment=item["commentable"],
                     author_info=_ArticleAuthorInfoField(

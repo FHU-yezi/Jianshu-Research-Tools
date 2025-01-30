@@ -23,7 +23,7 @@ class UserInfoField(DataObject, frozen=True):
     name: UserName
     avatar_url: UserUploadedUrl
 
-    def to_user_obj(self) -> "User":
+    def to_user_obj(self) -> User:
         from jkit.user import User
 
         return User.from_slug(self.slug)._as_checked()

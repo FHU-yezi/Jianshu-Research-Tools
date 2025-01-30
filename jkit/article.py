@@ -27,11 +27,13 @@ from jkit.constants import (
     _RESOURCE_UNAVAILABLE_STATUS_CODE,
 )
 from jkit.constraints import (
+    ArticleSlug,
     CollectionSlug,
     NonEmptyStr,
     NonNegativeFloat,
     NonNegativeInt,
     NormalizedDatetime,
+    NotebookId,
     Percentage,
     PositiveFloat,
     PositiveInt,
@@ -79,7 +81,8 @@ class _AuthorInfoField(DataObject, frozen=True):
 
 class InfoData(DataObject, frozen=True):
     id: PositiveInt
-    notebook_id: PositiveInt
+    slug: ArticleSlug
+    notebook_id: NotebookId
     title: NonEmptyStr
     description: str
     wordage: NonNegativeInt
@@ -159,7 +162,6 @@ class _CommentPublisherInfoField(DataObject, frozen=True):
     avatar_url: UserUploadedUrl
     address_by_ip: NonEmptyStr
 
-    @property
     def to_user_obj(self) -> User:
         from jkit.user import User
 
@@ -241,6 +243,7 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
 
         return InfoData(
             id=data["id"],
+            slug=data["slug"],
             notebook_id=data["notebook_id"],
             title=data["public_title"],
             description=data["description"],
