@@ -169,17 +169,44 @@ class DataObject(Struct, frozen=True, eq=True, kw_only=True):
             raise ValidationError(e.args[0]) from None
 
     def __repr__(self) -> str:
-        field_strings: list[str] = []
-        for field in self.__struct_fields__:
-            value = self.__getattribute__(field)
+        result: list[str] = []
 
-            if isinstance(value, str) and len(value) >= 100:  # noqa: PLR2004
-                formatted_value = value[:100] + "[truncated...]"
-            else:
+        for key in self.__struct_fields__:
+            value = getattr(self, key)
+
+            # 对于嵌套 DataObject，单独进行处理
+            if isinstance(value, DataObject):
                 formatted_value = value.__repr__()
 
-            field_strings.append(f"{field}={formatted_value}")
+                # 处理首字段缩进
+                formatted_value = formatted_value.replace(
+                    f"{value.__class__.__name__}(\n    ",
+                    f"{value.__class__.__name__}(\n        ",
+                )
 
-        return (
-            self.__class__.__name__ + "(\n    " + ",\n    ".join(field_strings) + "\n)"
+                # 处理字段嵌套缩进
+                formatted_value = formatted_value.replace(",\n    ", ",\n        ")
+
+                # 处理末尾括号缩进
+                formatted_value = formatted_value[:-1] + "    )"
+
+                result.append(f"{key}={formatted_value}")
+                continue
+
+            # 截断长度大于 100 的 content / introduction 字符串
+            if (
+                ("content" in key or "introduction" in key)
+                and isinstance(value, str)
+                and len(value) > 100  # noqa: PLR2004
+            ):
+                value = value[:100] + "..."
+
+            result.append(f"{key}={value!r}")
+
+        return "\n".join(
+            (
+                f"{self.__class__.__name__}(",
+                "    " + ",\n    ".join(result),
+                ")",
+            )
         )
