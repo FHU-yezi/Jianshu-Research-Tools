@@ -72,7 +72,7 @@ class ArticleEarningRanking(ResourceObject):
             datasource="JIANSHU",
             method="GET",
             path="/asimov/fp_rankings/voter_notes",
-            body={"date": self._target_date.strftime(r"%Y%m%d")},
+            params={"date": self._target_date.strftime(r"%Y%m%d")},
             response_type="JSON",
         )
 
@@ -87,7 +87,7 @@ class ArticleEarningRanking(ResourceObject):
             datasource="JIANSHU",
             method="GET",
             path="/asimov/fp_rankings/voter_notes",
-            body={"date": self._target_date.strftime(r"%Y%m%d")},
+            params={"date": self._target_date.strftime(r"%Y%m%d")},
             response_type="JSON",
         )
 

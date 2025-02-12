@@ -360,7 +360,7 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                 datasource="JIANSHU",
                 method="GET",
                 path=f"/shakespeare/notes/{await self.id}/included_collections",
-                body={"page": current_page, "count": 20},
+                params={"page": current_page, "count": 20},
                 response_type="JSON",
             )
             if not data["collections"]:
@@ -392,7 +392,7 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                 datasource="JIANSHU",
                 method="GET",
                 path=f"/shakespeare/notes/{await self.id}/comments",
-                body={
+                params={
                     "page": current_page,
                     "order_by": direction.lower(),
                     "author_only": author_only,
@@ -453,7 +453,7 @@ class Article(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
             datasource="JIANSHU",
             method="GET",
             path=f"/shakespeare/notes/{self.slug}/featured_comments",
-            body={
+            params={
                 "count": count,
             },
             response_type="JSON_LIST",

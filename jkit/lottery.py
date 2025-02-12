@@ -45,7 +45,7 @@ class Lottery(ResourceObject):
             datasource="JIANSHU",
             method="GET",
             path="/asimov/ad_rewards/winner_list",
-            body={"count": count},
+            params={"count": count},
             response_type="JSON_LIST",
         )
 

@@ -175,7 +175,7 @@ class Collection(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin
                 datasource="JIANSHU",
                 method="GET",
                 path=f"/asimov/collections/slug/{self.slug}/public_notes",
-                body={
+                params={
                     "page": current_page,
                     "count": 20,
                     "ordered_by": {

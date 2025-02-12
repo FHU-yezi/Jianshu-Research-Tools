@@ -56,7 +56,7 @@ class UserAssetsRanking(ResourceObject):
                 datasource="JIANSHU",
                 method="GET",
                 path="/asimov/fp_rankings",
-                body={"since_id": current_id - 1, "max_id": 10**9},
+                params={"since_id": current_id - 1, "max_id": 10**9},
                 response_type="JSON",
             )
             if not data["rankings"]:

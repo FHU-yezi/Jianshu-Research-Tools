@@ -167,7 +167,7 @@ class Notebook(ResourceObject, IdAndUrlResourceMixin, CheckableResourceMixin):
                 datasource="JIANSHU",
                 method="GET",
                 path=f"/asimov/notebooks/{self.id}/public_notes",
-                body={
+                params={
                     "page": current_page,
                     "count": 20,
                     "order_by": {

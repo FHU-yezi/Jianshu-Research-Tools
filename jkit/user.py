@@ -297,7 +297,7 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                 datasource="JIANSHU",
                 method="GET",
                 path=f"/asimov/users/slug/{self.slug}/public_notes",
-                body={
+                params={
                     "page": current_page,
                     "count": 20,
                     "order_by": {
@@ -352,7 +352,7 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                 datasource="JIANSHU",
                 method="GET",
                 path=f"/users/{self.slug}/notebooks",
-                body={
+                params={
                     "slug": self.slug,
                     "type": "manager",
                     "page": current_page,
@@ -388,7 +388,7 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                 datasource="JIANSHU",
                 method="GET",
                 path=f"/users/{self.slug}/collections",
-                body={
+                params={
                     "slug": self.slug,
                     "type": {"OWNED": "own", "MANAGED": "manager"}[type],
                     "page": current_page,
