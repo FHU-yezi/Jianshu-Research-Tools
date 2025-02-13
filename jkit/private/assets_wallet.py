@@ -70,7 +70,7 @@ class BenefitCardData(DataObject, frozen=True):
     estimated_benefits_precent: NonNegativeFloat | None
 
 
-class Assets(ResourceObject):
+class AssetsWallet(ResourceObject):
     def __init__(self, *, credential: JianshuCredential) -> None:
         self._credential = credential
 
