@@ -6,14 +6,18 @@ readme = "README.md"
 license = { file = "LICENSE" }
 authors = [{ name = "FHU-yezi", email = "yehaowei20060411@qq.com" }]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Framework :: AsyncIO",
-    "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Natural Language :: Chinese (Simplified)",
-    "Programming Language :: Python",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3 :: Only",
-    "Topic :: Software Development :: Libraries",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
     "Typing :: Typed",
 ]
 requires-python = ">=3.9"
