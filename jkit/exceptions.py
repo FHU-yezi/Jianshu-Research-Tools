@@ -2,6 +2,10 @@ class JKitError(Exception):
     pass
 
 
+class InvalidIdentifierError(JKitError):
+    pass
+
+
 class RatelimitError(JKitError):
     pass
 

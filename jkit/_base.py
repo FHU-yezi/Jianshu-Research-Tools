@@ -7,7 +7,7 @@ from msgspec import Struct, convert, to_builtins
 from msgspec import ValidationError as MsgspecValidationError
 
 from jkit.config import CONFIG
-from jkit.exceptions import ValidationError
+from jkit.exceptions import InvalidIdentifierError, ValidationError
 
 T = TypeVar("T", bound="DataObject")
 P1 = TypeVar("P1", bound="CheckableResourceMixin")
@@ -49,13 +49,13 @@ class SlugAndUrlResourceMixin:
 
         if slug is not None:
             if not class_._slug_check_func(slug):
-                raise ValueError(f"{slug} 不是有效的 {name} Slug")
+                raise InvalidIdentifierError(f"{slug} 不是有效的 {name} Slug")
 
             self._slug = slug
 
         if url is not None:
             if not class_._url_check_func(url):
-                raise ValueError(f"{url} 不是有效的 {name} Url")
+                raise InvalidIdentifierError(f"{url} 不是有效的 {name} Url")
 
             self._slug = class_._url_to_slug_func(url)
 
@@ -103,13 +103,13 @@ class IdAndUrlResourceMixin:
 
         if id is not None:
             if not class_._id_check_func(id):
-                raise ValueError(f"{id} 不是有效的 {name} Id")
+                raise InvalidIdentifierError(f"{id} 不是有效的 {name} Id")
 
             self._id = id
 
         if url is not None:
             if not class_._url_check_func(url):
-                raise ValueError(f"{url} 不是有效的 {name} Url")
+                raise InvalidIdentifierError(f"{url} 不是有效的 {name} Url")
 
             self._id = class_._url_to_id_func(url)
 
