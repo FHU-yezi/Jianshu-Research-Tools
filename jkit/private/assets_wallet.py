@@ -80,7 +80,7 @@ class AssetsWallet(ResourceObject):
             datasource="JIANSHU",
             method="GET",
             path="/mobile/fp/",
-            cookies=self._credential.cookies,
+            credential=self._credential,
             response_type="HTML",
         )
         data = JSON_DECODER.decode(_HTML_INNER_JSON_REGEX.findall(html)[0])
@@ -122,7 +122,7 @@ class AssetsWallet(ResourceObject):
                 }
                 if current_max_id
                 else {"since_id": min_id},
-                cookies=self._credential.cookies,
+                credential=self._credential,
                 response_type="JSON",
             )
             if not data["transactions"]:
@@ -157,7 +157,7 @@ class AssetsWallet(ResourceObject):
                 method="GET",
                 path="/asimov/fp_wallets/jsd_rewards",
                 params={"page": current_page, "count": 20},
-                cookies=self._credential.cookies,
+                credential=self._credential,
                 response_type="JSON",
             )
             if not data["transactions"]:
@@ -186,7 +186,7 @@ class AssetsWallet(ResourceObject):
             datasource="JIANSHU",
             method="GET",
             path="/asimov/fp_wallets/benefit_cards/info",
-            cookies=self._credential.cookies,
+            credential=self._credential,
             response_type="JSON",
         )
 
@@ -212,7 +212,7 @@ class AssetsWallet(ResourceObject):
                     "EXPIRED": "/asimov/fp_wallets/benefit_cards/expire",
                 }[type],
                 params={"page": current_page, "count": 20},
-                cookies=self._credential.cookies,
+                credential=self._credential,
                 response_type="JSON",
             )
 
@@ -245,7 +245,7 @@ class AssetsWallet(ResourceObject):
                     method="POST",
                     path="/asimov/fp_wallets/exchange_jsb",
                     body={"count": amount},
-                    cookies=self._credential.cookies,
+                    credential=self._credential,
                     response_type="JSON",
                 )
         except HTTPStatusError as e:
@@ -274,7 +274,7 @@ class AssetsWallet(ResourceObject):
                     method="POST",
                     path="/asimov/fp_wallets/exchange_jsd",
                     body={"count": amount},
-                    cookies=self._credential.cookies,
+                    credential=self._credential,
                     response_type="JSON",
                 )
         except HTTPStatusError as e:

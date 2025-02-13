@@ -12,8 +12,8 @@ class JianshuCredential(CredentialObject):
         return cls(remember_user_token=remember_user_token)
 
     @property
-    def cookies(self) -> dict[str, str]:
-        return {"remember_user_token": self._remember_user_token}
+    def headers(self) -> dict[str, str]:
+        return {"Cookie": f"remember_user_token={self._remember_user_token}"}
 
 
 class BeijiaoyiCredential(CredentialObject):

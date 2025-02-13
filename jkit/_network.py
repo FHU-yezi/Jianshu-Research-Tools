@@ -6,6 +6,7 @@ from httpx import AsyncClient
 from msgspec.json import Decoder as JsonDecoder
 from msgspec.json import Encoder as JsonEncoder
 
+from jkit._base import CredentialObject
 from jkit.config import CONFIG, _DatasourceNameType
 from jkit.constants import _RATELIMIT_STATUS_CODE
 from jkit.exceptions import RatelimitError
@@ -29,7 +30,7 @@ async def send_request(
     path: str,
     params: dict[str, Any] | None = None,
     body: dict[str, Any] | None = None,
-    cookies: dict[str, str] | None = None,
+    credential: CredentialObject | None = None,
     response_type: Literal["JSON"],
 ) -> dict[str, Any]: ...
 
@@ -42,7 +43,7 @@ async def send_request(
     path: str,
     params: dict[str, Any] | None = None,
     body: dict[str, Any] | None = None,
-    cookies: dict[str, str] | None = None,
+    credential: CredentialObject | None = None,
     response_type: Literal["JSON_LIST"],
 ) -> list[dict[str, Any]]: ...
 
@@ -55,7 +56,7 @@ async def send_request(
     path: str,
     params: dict[str, Any] | None = None,
     body: dict[str, Any] | None = None,
-    cookies: dict[str, str] | None = None,
+    credential: CredentialObject | None = None,
     response_type: Literal["HTML"],
 ) -> str: ...
 
@@ -67,7 +68,7 @@ async def send_request(  # noqa: PLR0913
     path: str,
     params: dict[str, Any] | None = None,
     body: dict[str, Any] | None = None,
-    cookies: dict[str, str] | None = None,
+    credential: CredentialObject | None = None,
     response_type: Literal["JSON", "JSON_LIST", "HTML"],
 ) -> dict[str, Any] | list[dict[str, Any]] | str:
     client = DATASOURCE_CLIENTS[datasource]
@@ -76,13 +77,15 @@ async def send_request(  # noqa: PLR0913
     if body is not None:
         headers["Content-Type"] = "application/json"
 
+    if credential:
+        headers.update(credential.headers)
+
     response = await client.request(
         method=method,
         url=path,
         params=params,
         content=JSON_ENCODER.encode(body) if body else None,
         headers=headers,
-        cookies=cookies,
     )
 
     if datasource == "JIANSHU" and response.status_code == _RATELIMIT_STATUS_CODE:
