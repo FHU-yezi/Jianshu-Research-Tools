@@ -84,30 +84,6 @@ class InfoData(DataObject, frozen=True):
     total_likes_count: NonNegativeInt
 
 
-class CollectionData(DataObject, frozen=True):
-    id: PositiveInt
-    slug: CollectionSlug
-    name: NonEmptyStr
-    image_url: UserUploadedUrl
-
-    def to_collection_obj(self) -> Collection:
-        from jkit.collection import Collection
-
-        return Collection.from_slug(self.slug)._as_checked()
-
-
-class NotebookData(DataObject, frozen=True):
-    id: NotebookId
-    name: NonEmptyStr
-    is_serial: bool
-    is_paid: bool | None
-
-    def to_notebook_obj(self) -> Notebook:
-        from jkit.notebook import Notebook
-
-        return Notebook.from_id(self.id)._as_checked()
-
-
 class _ArticleAuthorInfoField(DataObject, frozen=True):
     id: PositiveInt
     slug: UserSlug
@@ -118,6 +94,12 @@ class _ArticleAuthorInfoField(DataObject, frozen=True):
         from jkit.user import User
 
         return User.from_slug(self.slug)._as_checked()
+
+
+class AssetsInfoData(DataObject, frozen=True):
+    fp_amount: NonNegativeFloat
+    ftn_amount: NonNegativeFloat | None
+    assets_amount: NonNegativeFloat | None
 
 
 class ArticleData(DataObject, frozen=True):
@@ -142,6 +124,30 @@ class ArticleData(DataObject, frozen=True):
         from jkit.article import Article
 
         return Article.from_slug(self.slug)._as_checked()
+
+
+class NotebookData(DataObject, frozen=True):
+    id: NotebookId
+    name: NonEmptyStr
+    is_serial: bool
+    is_paid: bool | None
+
+    def to_notebook_obj(self) -> Notebook:
+        from jkit.notebook import Notebook
+
+        return Notebook.from_id(self.id)._as_checked()
+
+
+class CollectionData(DataObject, frozen=True):
+    id: PositiveInt
+    slug: CollectionSlug
+    name: NonEmptyStr
+    image_url: UserUploadedUrl
+
+    def to_collection_obj(self) -> Collection:
+        from jkit.collection import Collection
+
+        return Collection.from_slug(self.slug)._as_checked()
 
 
 class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
@@ -243,7 +249,7 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
         )._validate()
 
     @property
-    async def assets_info(self) -> tuple[float, float | None, float | None]:
+    async def assets_info(self) -> AssetsInfoData:
         fp_amount_data = await send_request(
             datasource="JIANSHU",
             method="GET",
@@ -267,7 +273,11 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
         except IndexError:
             # 受 API 限制，无法获取此用户的总资产信息
             # 此时简书贝也无法计算
-            return (fp_amount, None, None)
+            return AssetsInfoData(
+                fp_amount=fp_amount,
+                ftn_amount=None,
+                assets_amount=None,
+            )._validate()
         else:
             ftn_amount = round(assets_amount - fp_amount, 3)
             # 由于总资产信息存在误差（实际值四舍五入，如 10200 -> 10000）
@@ -279,7 +289,11 @@ class User(ResourceObject, SlugAndUrlResourceMixin, CheckableResourceMixin):
                 assets_amount += 500
                 ftn_amount = round(assets_amount - fp_amount, 3)
 
-            return (fp_amount, ftn_amount, assets_amount)
+            return AssetsInfoData(
+                fp_amount=fp_amount,
+                ftn_amount=ftn_amount,
+                assets_amount=assets_amount,
+            )._validate()
 
     async def iter_articles(
         self,
