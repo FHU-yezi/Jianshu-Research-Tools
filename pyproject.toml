@@ -1,6 +1,6 @@
 [project]
 name = "jkit"
-version = "3.0.0b2"
+version = "3.0.0b3"
 description = "简书非官方 SDK - 创造可能性"
 readme = "README.md"
 license = { file = "LICENSE" }
