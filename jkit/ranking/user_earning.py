@@ -15,7 +15,7 @@ from jkit.constraints import (
     UserSlug,
     UserUploadedUrl,
 )
-from jkit.exceptions import APIUnsupportedError
+from jkit.exceptions import APIUnsupportedError, ResourceUnavailableError
 
 if TYPE_CHECKING:
     from jkit.user import User
@@ -54,7 +54,7 @@ class UserEarningRanking(ResourceObject):
         if target_date < date(2020, 6, 20):
             raise APIUnsupportedError("受 API 限制，无法获取 2020.06.20 前的排行榜数据")
         if target_date >= datetime.now().date():
-            raise ValueError("无法获取未来的排行榜数据")
+            raise ResourceUnavailableError("无法获取未来的排行榜数据")
 
         self._target_date = target_date
 
