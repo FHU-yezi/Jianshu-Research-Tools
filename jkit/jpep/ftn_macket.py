@@ -44,10 +44,7 @@ class OrderData(DataObject, frozen=True):
 
 class FtnMacket(ResourceObject):
     async def iter_orders(
-        self,
-        *,
-        type: Literal["BUY", "SELL"],
-        start_page: int = 1,
+        self, *, type: Literal["BUY", "SELL"], start_page: int = 1
     ) -> AsyncGenerator[OrderData, None]:
         current_page = start_page
 

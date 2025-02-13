@@ -19,6 +19,7 @@ JSON_DECODER = JsonDecoder()
 DATASOURCE_CLIENTS: dict[_DatasourceNameType, AsyncClient] = {
     "JIANSHU": CONFIG.datasources.jianshu._get_httpx_client(),
     "JPEP": CONFIG.datasources.jpep._get_httpx_client(),
+    "BEIJIAOYI": CONFIG.datasources.beijiaoyi._get_httpx_client(),
 }
 
 

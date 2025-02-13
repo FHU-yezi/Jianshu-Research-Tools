@@ -9,7 +9,7 @@ from msgspec import Struct, convert, field, to_builtins
 from jkit import __version__
 from jkit.constraints import NonEmptyStr
 
-_DatasourceNameType = Literal["JIANSHU", "JPEP"]
+_DatasourceNameType = Literal["JIANSHU", "JPEP", "BEIJIAOYI"]
 
 T = TypeVar("T", bound="_ConfigObject")
 
@@ -62,6 +62,9 @@ class _DatasourcesList(_ConfigObject):
     # 简书积分兑换平台
     jpep: _DatasourceConfig
 
+    # 贝交易平台
+    beijiaoyi: _DatasourceConfig
+
 
 class _ResourceCheckConfig(_ConfigObject):
     # 从资源对象获取数据时自动进行资源检查
@@ -97,6 +100,15 @@ class _Config(_ConfigObject):
             jpep=_DatasourceConfig(
                 _name="JPEP",
                 endpoint="https://20221023.jianshubei.com/api",
+                headers={"User-Agent": f"JKit/{__version__}"},
+                # 目前不支持 HTTP/2
+                http_version=1,
+                timeout=5,
+                proxy=None,
+            ),
+            beijiaoyi=_DatasourceConfig(
+                _name="BEIJIAOYI",
+                endpoint="https://testapi.beijiaoyi.com/api",
                 headers={"User-Agent": f"JKit/{__version__}"},
                 # 目前不支持 HTTP/2
                 http_version=1,
