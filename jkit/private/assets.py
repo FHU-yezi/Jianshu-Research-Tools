@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator
 from contextlib import suppress
 from decimal import Decimal
+from re import compile as re_compile
 from typing import Literal
 
 from httpx import HTTPStatusError
@@ -27,8 +28,17 @@ from jkit.constraints import (
 from jkit.credentials import JianshuCredential
 from jkit.exceptions import BalanceNotEnoughError, WeeklyConvertLimitExceededError
 
+_HTML_INNER_JSON_REGEX = re_compile(r"__INITIAL_STATE__=(.*);\(function")
+
 AssetsTransactionType = Literal["INCOME", "EXPENSE"]
 BenefitCardType = Literal["PENDING", "ACTIVE", "EXPIRED"]
+
+
+class AssetsInfoData(DataObject, frozen=True):
+    fp_amount: Decimal
+    ftn_amount: Decimal
+    assets_amount: Decimal
+    converting_fp_amount: Decimal
 
 
 class TransactionData(DataObject, frozen=True):
@@ -63,6 +73,32 @@ class BenefitCardData(DataObject, frozen=True):
 class Assets(ResourceObject):
     def __init__(self, *, credential: JianshuCredential) -> None:
         self._credential = credential
+
+    @property
+    async def assets_info(self) -> AssetsInfoData:
+        html = await send_request(
+            datasource="JIANSHU",
+            method="GET",
+            path="/mobile/fp/",
+            cookies=self._credential.cookies,
+            response_type="HTML",
+        )
+        data = JSON_DECODER.decode(_HTML_INNER_JSON_REGEX.findall(html)[0])
+
+        return AssetsInfoData(
+            fp_amount=normalize_assets_amount_precise(
+                data["ruby"]["wallet"]["assets"]["jsd_amount18"]
+            ),
+            ftn_amount=normalize_assets_amount_precise(
+                data["ruby"]["wallet"]["assets"]["jsb_amount18"]
+            ),
+            assets_amount=normalize_assets_amount_precise(
+                data["ruby"]["wallet"]["assets"]["total_assets18"]
+            ),
+            converting_fp_amount=normalize_assets_amount_precise(
+                data["ruby"]["wallet"]["assets"]["exchanging_jsb18"]
+            ),
+        )._validate()
 
     async def iter_transactions(
         self,
