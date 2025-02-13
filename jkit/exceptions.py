@@ -6,7 +6,7 @@ class RatelimitError(JKitError):
     pass
 
 
-class ValidationError(Exception):
+class ValidationError(JKitError):
     pass
 
 
