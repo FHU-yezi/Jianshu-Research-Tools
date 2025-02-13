@@ -206,3 +206,8 @@ class DataObject(Struct, frozen=True, eq=True, kw_only=True):
                 ")",
             )
         )
+
+
+class CredentialObject:
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"

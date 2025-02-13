@@ -24,7 +24,7 @@ from jkit.constraints import (
     Percentage,
     PositiveInt,
 )
-from jkit.credential import JianshuCredential
+from jkit.credentials import JianshuCredential
 from jkit.exceptions import BalanceNotEnoughError, WeeklyConvertLimitExceededError
 
 AssetsTransactionType = Literal["INCOME", "EXPENSE"]
