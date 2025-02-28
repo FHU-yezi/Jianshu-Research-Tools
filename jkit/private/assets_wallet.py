@@ -79,7 +79,7 @@ class AssetsWallet(ResourceObject):
         html = await send_request(
             datasource="JIANSHU",
             method="GET",
-            path="/mobile/fp/",
+            path="/mobile/fp",
             credential=self._credential,
             response_type="HTML",
         )

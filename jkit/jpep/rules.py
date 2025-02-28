@@ -18,6 +18,7 @@ class Rules(ResourceObject):
         data = await send_request(
             datasource="JPEP",
             method="POST",
+            # 尾随斜线为有意保留，否则会出现 HTTP 500 错误
             path="/getList/furnish.setting/1/",
             body={"fields": "isClose,fee,shop_fee,minimum_price,buy_minimum_price"},
             response_type="JSON",

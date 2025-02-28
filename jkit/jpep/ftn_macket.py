@@ -52,7 +52,8 @@ class FtnMacket(ResourceObject):
             data = await send_request(
                 datasource="JPEP",
                 method="POST",
-                path=f"/getList/furnish.bei/?page={current_page}",
+                # 尾随斜线为有意保留，否则会出现 HTTP 500 错误
+                path="/getList/furnish.bei/",
                 params={"page": current_page},
                 body={
                     "filter": [
