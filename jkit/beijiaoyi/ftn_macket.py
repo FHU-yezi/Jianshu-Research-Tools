@@ -33,6 +33,7 @@ class OrderData(DataObject, frozen=True):
     traded_amount: NonNegativeInt
     tradable_amount: NonNegativeInt
     minimum_trade_amount: PositiveInt
+    maximum_trade_amount: PositiveInt | None
 
     completed_trades_count: NonNegativeInt
     publish_time: NormalizedDatetime
@@ -82,6 +83,7 @@ class FtnMacket(ResourceObject):
                     tradable_amount=int(item["availableQty"]),
                     traded_amount=int(item["totalQty"] - item["availableQty"]),
                     minimum_trade_amount=item["Limit"],
+                    maximum_trade_amount=item["MaxLimit"],
                     completed_trades_count=item["tradeQty"],
                     publish_time=normalize_datetime(item["CreateDate"]),
                     supported_payment_channels=supported_payment_channels,
